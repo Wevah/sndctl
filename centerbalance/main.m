@@ -7,11 +7,42 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <CoreAudio/CoreAudio.h>
+#import <AudioToolbox/AudioToolbox.h>
 
 int main(int argc, const char * argv[]) {
 	@autoreleasepool {
-	    // insert code here...
-	    NSLog(@"Hello, World!");
+		AudioObjectPropertyAddress getDefaultOutputDevicePropertyAddress = {
+			kAudioHardwarePropertyDefaultOutputDevice,
+			kAudioObjectPropertyScopeGlobal,
+			kAudioObjectPropertyElementMaster
+		};
+
+		AudioDeviceID defaultOutputDeviceID;
+		UInt32 volumedataSize = sizeof(defaultOutputDeviceID);
+		OSStatus result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &getDefaultOutputDevicePropertyAddress, 0, NULL, &volumedataSize, &defaultOutputDeviceID);
+
+		if (result != kAudioHardwareNoError) {
+			NSLog(@"AudioObjectGetPropertyData: %d", result);
+		}
+
+		AudioObjectPropertyAddress balancePropertyAddress = {
+			kAudioHardwareServiceDeviceProperty_VirtualMasterBalance,
+			kAudioDevicePropertyScopeOutput,
+			kAudioObjectPropertyElementMaster
+		};
+
+		Float32 balance = 0.5;
+		volumedataSize = sizeof(balance);
+
+		result = AudioObjectSetPropertyData(defaultOutputDeviceID,
+											&balancePropertyAddress,
+											0, NULL,
+											sizeof(balance), &balance);
+		if (result != kAudioHardwareNoError) {
+			NSLog(@"AudioObjectSetPropertyData: %d", result);
+		}
+
 	}
     return 0;
 }
