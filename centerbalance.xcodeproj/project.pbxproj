@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B2AF5F5A1E28D9CD0008ECF8 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B2AF5F591E28D9CD0008ECF8 /* main.m */; };
+		B2AF5F5A1E28D9CD0008ECF8 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = B2AF5F591E28D9CD0008ECF8 /* main.c */; };
 		B2AF5F621E28D9E40008ECF8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2AF5F611E28D9E40008ECF8 /* CoreAudio.framework */; };
 		B2AF5F641E28DB700008ECF8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2AF5F631E28DB700008ECF8 /* AudioToolbox.framework */; };
 /* End PBXBuildFile section */
@@ -27,7 +27,7 @@
 /* Begin PBXFileReference section */
 		B252F4741ECD1F16008973CB /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B2AF5F561E28D9CD0008ECF8 /* centerbalance */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = centerbalance; sourceTree = BUILT_PRODUCTS_DIR; };
-		B2AF5F591E28D9CD0008ECF8 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		B2AF5F591E28D9CD0008ECF8 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		B2AF5F611E28D9E40008ECF8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		B2AF5F631E28DB700008ECF8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -65,7 +65,7 @@
 		B2AF5F581E28D9CD0008ECF8 /* centerbalance */ = {
 			isa = PBXGroup;
 			children = (
-				B2AF5F591E28D9CD0008ECF8 /* main.m */,
+				B2AF5F591E28D9CD0008ECF8 /* main.c */,
 				B252F4741ECD1F16008973CB /* Info.plist */,
 			);
 			path = centerbalance;
@@ -138,7 +138,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B2AF5F5A1E28D9CD0008ECF8 /* main.m in Sources */,
+				B2AF5F5A1E28D9CD0008ECF8 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
