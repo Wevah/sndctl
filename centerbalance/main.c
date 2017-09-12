@@ -147,10 +147,13 @@ bool setBalance(AudioDeviceID devid, Float32 balance) {
 }
 
 void printHelp(void) {
-	printf("\nUsage: %s [options] [balance]\nWhere balance is 0.0 (left) to 1.0 (right) and defaults to 0.5 (center)\n\n", getprogname());
+	printf("\nUsage: %s [options] [balance]\n"
+		   "Where balance is 0.0 (left) to 1.0 (right) and defaults to 0.5 (center)\n"
+		   "\"l\" and \"r\" can also be used as synonyms for 0.0 and 1.0, respectively\n\n",
+		   getprogname());
 	puts("Options:\n" \
-		 "  -d [deviceid]    Use the specified device ID instead of the current output device.\n" \
-		 "  -l               List available output devices.\n" \
+		 "  -d [deviceid]    Use the specified device ID instead of the current output device.\n"
+		 "  -l               List available output devices.\n"
 		 "  -h               Display this help.\n"
 		 );
 }
