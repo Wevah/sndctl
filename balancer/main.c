@@ -183,18 +183,18 @@ int main(int argc, const char * argv[]) {
 				devid = (AudioObjectID)strtoul(optarg, NULL, 10);
 				break;
 		}
-
-		argc -= optind;
-		argv += optind;
 	}
+
+	argc -= optind;
+	argv += optind;
 
 	Float32 balance = 0.5;
 
-	if (argc > 1) {
+	if (argc > 0) {
 		char *endptr;
-		balance = strtof_l(argv[1], &endptr, NULL); // Always use the C locale.
+		balance = strtof_l(argv[0], &endptr, NULL); // Always use the C locale.
 
-		if (balance == 0.0 && endptr == argv[1]) {
+		if (balance == 0.0 && endptr == argv[0]) {
 			if (strlen(endptr) != 0) {
 				switch(endptr[0]) {
 					case 'l':
