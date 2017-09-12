@@ -70,8 +70,8 @@ void listAudioOutputDevices(void) {
 	if (result != kAudioHardwareNoError)
 		dprintf(STDERR_FILENO, "AudioObjectGetPropertyDataSize: %d\n", result);
 
-	int nDevices = propsize / sizeof(AudioDeviceID);
-	AudioDeviceID devids[nDevices];
+	int nDevices = propsize / sizeof(AudioObjectID);
+	AudioObjectID devids[nDevices];
 	result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize, devids);
 
 	if (result != kAudioHardwareNoError)
@@ -102,7 +102,7 @@ AudioObjectID defaultOutputDeviceID(void) {
 		kAudioObjectPropertyElementMaster
 	};
 
-	AudioDeviceID defaultOutputDeviceID;
+	AudioObjectID defaultOutputDeviceID;
 	UInt32 deviceIDSize = sizeof(defaultOutputDeviceID);
 	OSStatus result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &getDefaultOutputDevicePropertyAddress, 0, NULL, &deviceIDSize, &defaultOutputDeviceID);
 
@@ -114,7 +114,39 @@ AudioObjectID defaultOutputDeviceID(void) {
 	return defaultOutputDeviceID;
 }
 
-bool setBalance(AudioDeviceID devid, Float32 balance) {
+bool setVolume(AudioObjectID devid, Float32 volume) {
+	if (devid == 0)
+		devid = defaultOutputDeviceID();
+
+	if (devid == 0)
+		return false;
+
+	AudioObjectPropertyAddress volumePropertyAddress = {
+		kAudioHardwareServiceDeviceProperty_VirtualMasterVolume,
+		kAudioObjectPropertyScopeOutput,
+		kAudioObjectPropertyElementMaster
+	};
+
+	OSStatus result = AudioObjectSetPropertyData(devid, &volumePropertyAddress, 0, NULL, sizeof(volume), &volume);
+
+	switch (result) {
+		case kAudioHardwareNoError:
+			break;
+		case kAudioHardwareBadObjectError:
+			dprintf(STDERR_FILENO, "No audio device exists with ID %u!\n", devid);
+			break;
+		case kAudioHardwareUnknownPropertyError:
+			dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support setting the volume!\n", devid);
+			break;
+		default:
+			dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d", result);
+			break;
+	}
+
+	return result == kAudioHardwareNoError;
+}
+
+bool setBalance(AudioObjectID devid, Float32 balance) {
 	if (devid == 0)
 		devid = defaultOutputDeviceID();
 
@@ -149,7 +181,7 @@ bool setBalance(AudioDeviceID devid, Float32 balance) {
 void printHelp(void) {
 	printf("\nUsage: %s [options] [balance]\n"
 		   "Where balance is 0.0 (left) to 1.0 (right) and defaults to 0.5 (center)\n"
-		   "\"l\" and \"r\" can also be used as synonyms for 0.0 and 1.0, respectively\n\n",
+		   "\"l\", \"r\", and \"c\" can be used as synonyms for 0.0, 1.0, and 0.5 respectively\n\n",
 		   getprogname());
 	puts("Options:\n" \
 		 "  -d, --device [deviceid]    Use the specified device ID instead of the current output device.\n"
@@ -160,17 +192,64 @@ void printHelp(void) {
 
 int main(int argc, const char * argv[]) {
 	static struct option longopts[] = {
-		{ "help",	no_argument,		NULL,	'h' },
-		{ "list",	no_argument,		NULL,	'l' },
-		{ "device", required_argument,	NULL,	'd'},
-		{ NULL,		0,					NULL,	0	}
+		{ "balance",	optional_argument,	NULL,	'b' },
+		{ "volume",		required_argument,	NULL,	'v' },
+		{ "help",		no_argument,		NULL,	'h' },
+		{ "list",		no_argument,		NULL,	'l' },
+		{ "device",		required_argument,	NULL,	'd' },
+		{ NULL,			0,					NULL,	0	}
 	};
 
 	int opt;
 	AudioObjectID devid = 0;
 
-	while ((opt = getopt_long(argc, (char * const *)argv, "hld:", longopts, NULL)) != -1) {
+	Float32 balance = 0.5;
+	bool shouldSetBalance = false;
+
+	Float32 volume = 0.0;
+	bool shouldSetVolume = false;
+
+	while ((opt = getopt_long(argc, (char * const *)argv, "b::v:hld:", longopts, NULL)) != -1) {
 		switch (opt) {
+			case 'b': {
+				shouldSetBalance = true;
+
+				if (optarg) {
+					char *endptr;
+					balance = strtof_l(optarg, &endptr, NULL); // Always use the C locale.
+
+					if (balance == 0.0 && endptr == optarg) {
+						if (strlen(endptr) != 0) {
+							switch(endptr[0]) {
+								case 'l':
+									balance = 0.0;
+									break;
+								case 'r':
+									balance = 1.0;
+									break;
+								case 'c':
+									balance = 0.5;
+									break;
+								default:
+									dprintf(STDERR_FILENO, "Invalid argument '%s' to option 'balance'.\n", endptr);
+									shouldSetBalance = false;
+									break;
+							}
+						} else
+							balance = 0.5;
+					}
+				}
+
+				break;
+			}
+			case 'v': {
+				shouldSetVolume = true;
+
+				char *endptr;
+				volume = strtof_l(optarg, &endptr, NULL); // Always use the C locale.
+
+				break;
+			}
 			case 'h':
 				printHelp();
 				return 0;
@@ -188,32 +267,11 @@ int main(int argc, const char * argv[]) {
 	argc -= optind;
 	argv += optind;
 
-	Float32 balance = 0.5;
+	if (shouldSetBalance)
+		setBalance(devid, balance);
 
-	if (argc > 0) {
-		char *endptr;
-		balance = strtof_l(argv[0], &endptr, NULL); // Always use the C locale.
+	if (shouldSetVolume)
+		setVolume(devid, volume);
 
-		if (balance == 0.0 && endptr == argv[0]) {
-			if (strlen(endptr) != 0) {
-				switch(endptr[0]) {
-					case 'l':
-						balance = 0.0;
-						break;
-					case 'r':
-						balance = 1.0;
-						break;
-					default:
-						balance = 0.5;
-						break;
-				}
-			} else
-				balance = 0.5;
-		} else {
-			balance = balance < 0.0 ? 0.0 : balance;
-			balance = balance > 1.0 ? 1.0 : balance;
-		}
-	}
-
-	return setBalance(devid, balance) ? 0 : 1;
+	return 0;
 }
