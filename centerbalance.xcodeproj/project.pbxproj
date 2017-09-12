@@ -255,6 +255,7 @@
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = M72QZ9W58G;
 				INFOPLIST_FILE = centerbalance/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = org.derailer.balancer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -266,6 +267,7 @@
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = M72QZ9W58G;
 				INFOPLIST_FILE = centerbalance/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = org.derailer.balancer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
