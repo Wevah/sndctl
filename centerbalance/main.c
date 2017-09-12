@@ -92,26 +92,31 @@ void listAudioOutputDevices(void) {
 	}
 }
 
-bool setBalance(AudioDeviceID devid, Float32 balance) {
-	if (devid == 0) {
-		AudioObjectPropertyAddress getDefaultOutputDevicePropertyAddress = {
-			kAudioHardwarePropertyDefaultOutputDevice,
-			kAudioObjectPropertyScopeGlobal,
-			kAudioObjectPropertyElementMaster
-		};
+AudioObjectID defaultOutputDeviceID(void) {
+	AudioObjectPropertyAddress getDefaultOutputDevicePropertyAddress = {
+		kAudioHardwarePropertyDefaultOutputDevice,
+		kAudioObjectPropertyScopeGlobal,
+		kAudioObjectPropertyElementMaster
+	};
 
-		AudioDeviceID defaultOutputDeviceID;
-		UInt32 deviceIDSize = sizeof(defaultOutputDeviceID);
-		OSStatus result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &getDefaultOutputDevicePropertyAddress, 0, NULL, &deviceIDSize, &defaultOutputDeviceID);
+	AudioDeviceID defaultOutputDeviceID;
+	UInt32 deviceIDSize = sizeof(defaultOutputDeviceID);
+	OSStatus result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &getDefaultOutputDevicePropertyAddress, 0, NULL, &deviceIDSize, &defaultOutputDeviceID);
 
-		if (result != kAudioHardwareNoError) {
-				dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d", result);
-
-			return false;
-		}
-
-		devid = defaultOutputDeviceID;
+	if (result != kAudioHardwareNoError) {
+		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d", result);
+		return 0;
 	}
+
+	return defaultOutputDeviceID;
+}
+
+bool setBalance(AudioDeviceID devid, Float32 balance) {
+	if (devid == 0)
+		devid = defaultOutputDeviceID();
+
+	if (devid == 0)
+		return false;
 
 	AudioObjectPropertyAddress balancePropertyAddress = {
 		kAudioHardwareServiceDeviceProperty_VirtualMasterBalance,
