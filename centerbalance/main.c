@@ -150,7 +150,8 @@ void printHelp(void) {
 	printf("\nUsage: %s [options] [balance]\nWhere balance is 0.0 (left) to 1.0 (right) and defaults to 0.5 (center)\n\n", getprogname());
 	puts("Options:\n" \
 		 "  -d [deviceid]    Use the specified device ID instead of the current output device.\n" \
-		 "  -l               List available output devices.\n"
+		 "  -l               List available output devices.\n" \
+		 "  -h               Display this help.\n"
 		 );
 }
 
