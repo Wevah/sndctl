@@ -10,7 +10,7 @@
 #import <xlocale.h>
 #import <getopt.h>
 
-CFStringRef copyNameOfDeviceID(AudioDeviceID devid) CF_RETURNS_RETAINED {
+CFStringRef copyNameOfDeviceID(AudioObjectID devid) CF_RETURNS_RETAINED {
 	AudioObjectPropertyAddress theAddress = {
 		kAudioObjectPropertyName,
 		kAudioObjectPropertyScopeOutput,
@@ -28,7 +28,7 @@ CFStringRef copyNameOfDeviceID(AudioDeviceID devid) CF_RETURNS_RETAINED {
 	return name;
 }
 
-UInt32 numberOfChannelsOfDeviceID(AudioDeviceID devid) {
+UInt32 numberOfChannelsOfDeviceID(AudioObjectID devid) {
 	AudioObjectPropertyAddress theAddress = {
 		kAudioDevicePropertyStreamConfiguration,
 		kAudioDevicePropertyScopeOutput,
