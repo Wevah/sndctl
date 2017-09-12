@@ -53,7 +53,7 @@ UInt32 numberOfChannelsOfDeviceID(AudioObjectID devid) {
 	}
 
 	free(buflist);
-	return result;
+	return numberOfChannels;
 }
 
 void listAudioOutputDevices(void) {
