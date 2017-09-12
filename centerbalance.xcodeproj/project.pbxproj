@@ -26,7 +26,7 @@
 
 /* Begin PBXFileReference section */
 		B252F4741ECD1F16008973CB /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B2AF5F561E28D9CD0008ECF8 /* centerbalance */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = centerbalance; sourceTree = BUILT_PRODUCTS_DIR; };
+		B2AF5F561E28D9CD0008ECF8 /* balancer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = balancer; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2AF5F591E28D9CD0008ECF8 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		B2AF5F611E28D9E40008ECF8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		B2AF5F631E28DB700008ECF8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -57,7 +57,7 @@
 		B2AF5F571E28D9CD0008ECF8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B2AF5F561E28D9CD0008ECF8 /* centerbalance */,
+				B2AF5F561E28D9CD0008ECF8 /* balancer */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,9 +83,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B2AF5F551E28D9CD0008ECF8 /* centerbalance */ = {
+		B2AF5F551E28D9CD0008ECF8 /* balancer */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B2AF5F5D1E28D9CD0008ECF8 /* Build configuration list for PBXNativeTarget "centerbalance" */;
+			buildConfigurationList = B2AF5F5D1E28D9CD0008ECF8 /* Build configuration list for PBXNativeTarget "balancer" */;
 			buildPhases = (
 				B2AF5F521E28D9CD0008ECF8 /* Sources */,
 				B2AF5F531E28D9CD0008ECF8 /* Frameworks */,
@@ -95,9 +95,9 @@
 			);
 			dependencies = (
 			);
-			name = centerbalance;
+			name = balancer;
 			productName = centerbalance;
-			productReference = B2AF5F561E28D9CD0008ECF8 /* centerbalance */;
+			productReference = B2AF5F561E28D9CD0008ECF8 /* balancer */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -128,7 +128,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				B2AF5F551E28D9CD0008ECF8 /* centerbalance */,
+				B2AF5F551E28D9CD0008ECF8 /* balancer */,
 			);
 		};
 /* End PBXProject section */
@@ -284,7 +284,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B2AF5F5D1E28D9CD0008ECF8 /* Build configuration list for PBXNativeTarget "centerbalance" */ = {
+		B2AF5F5D1E28D9CD0008ECF8 /* Build configuration list for PBXNativeTarget "balancer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B2AF5F5E1E28D9CD0008ECF8 /* Debug */,
