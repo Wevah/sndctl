@@ -20,10 +20,10 @@ CFStringRef copyNameOfDeviceID(AudioDeviceID devid) CF_RETURNS_RETAINED {
 	CFStringRef name;
 	UInt32 maxlen = sizeof(name);
 
-	OSStatus err = AudioObjectGetPropertyData(devid, &theAddress, 0, NULL, &maxlen, &name);
+	OSStatus result = AudioObjectGetPropertyData(devid, &theAddress, 0, NULL, &maxlen, &name);
 
-	if (err != noErr)
-		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", err);
+	if (result != kAudioHardwareNoError)
+		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", result);
 
 	return name;
 }
@@ -36,17 +36,20 @@ UInt32 numberOfChannelsOfDeviceID(AudioDeviceID devid) {
 	};
 
 	UInt32 propSize;
-	UInt32 result = 0;
+	UInt32 numberOfChannels = 0;
 
-	OSStatus err = AudioObjectGetPropertyDataSize(devid, &theAddress, 0, NULL, &propSize);
-	if (err) return 0;
+	OSStatus result = AudioObjectGetPropertyDataSize(devid, &theAddress, 0, NULL, &propSize);
+
+	if (result != kAudioHardwareNoError)
+		return 0;
 
 	AudioBufferList *buflist = (AudioBufferList *)malloc(propSize);
 
-	err = AudioObjectGetPropertyData(devid, &theAddress, 0, NULL, &propSize, buflist);
-	if (err == noErr) {
+	result = AudioObjectGetPropertyData(devid, &theAddress, 0, NULL, &propSize, buflist);
+
+	if (result == kAudioHardwareNoError) {
 		for (UInt32 i = 0; i < buflist->mNumberBuffers; ++i)
-			result += buflist->mBuffers[i].mNumberChannels;
+			numberOfChannels += buflist->mBuffers[i].mNumberChannels;
 	}
 
 	free(buflist);
@@ -62,17 +65,17 @@ void listAudioOutputDevices(void) {
 		kAudioObjectPropertyElementMaster
 	};
 
-	OSStatus err = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize);
+	OSStatus result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize);
 
-	if (err != noErr)
-		dprintf(STDERR_FILENO, "AudioObjectGetPropertyDataSize: %d\n", err);
+	if (result != kAudioHardwareNoError)
+		dprintf(STDERR_FILENO, "AudioObjectGetPropertyDataSize: %d\n", result);
 
 	int nDevices = propsize / sizeof(AudioDeviceID);
 	AudioDeviceID devids[nDevices];
-	err = AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize, devids);
+	result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize, devids);
 
-	if (err != noErr)
-		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", err);
+	if (result != kAudioHardwareNoError)
+		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", result);
 
 	for (int i = 0; i < nDevices; ++i) {
 		if (numberOfChannelsOfDeviceID(devids[i]) > 0) {
