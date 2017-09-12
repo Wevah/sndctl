@@ -1,6 +1,6 @@
 //
 //  main.c
-//  centerbalance
+//  balancer
 //
 //  Created by Nate Weaver on 2017-01-13.
 //  Copyright © 2017 Nate Weaver/Derailer. All rights reserved.
@@ -152,9 +152,9 @@ void printHelp(void) {
 		   "\"l\" and \"r\" can also be used as synonyms for 0.0 and 1.0, respectively\n\n",
 		   getprogname());
 	puts("Options:\n" \
-		 "  -d [deviceid]    Use the specified device ID instead of the current output device.\n"
-		 "  -l               List available output devices.\n"
-		 "  -h               Display this help.\n"
+		 "  -d, --device [deviceid]    Use the specified device ID instead of the current output device.\n"
+		 "  -l, --list                 List available output devices.\n"
+		 "  -h, --help                 Display this help.\n"
 		 );
 }
 
