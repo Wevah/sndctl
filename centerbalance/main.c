@@ -139,15 +139,19 @@ bool setBalance(AudioDeviceID devid, Float32 balance) {
 }
 
 void printHelp(void) {
-	printf("Usage: %s [options] [balance]\nWhere balance is 0.0 (left) to 1.0 (right) and defaults to 0.5 (center)\n", getprogname());
+	printf("\nUsage: %s [options] [balance]\nWhere balance is 0.0 (left) to 1.0 (right) and defaults to 0.5 (center)\n\n", getprogname());
+	puts("Options:\n" \
+		 "  -d [deviceid]    Use the specified device ID instead of the current output device.\n" \
+		 "  -l               List available output devices.\n"
+		 );
 }
 
 int main(int argc, const char * argv[]) {
 	static struct option longopts[] = {
-		{ "help",	no_argument,	NULL,	'h' },
-		{ "list",	no_argument,	NULL,	'l' },
-		{ "device", required_argument, NULL, 'd'},
-		{ NULL,		0,				NULL,	0	}
+		{ "help",	no_argument,		NULL,	'h' },
+		{ "list",	no_argument,		NULL,	'l' },
+		{ "device", required_argument,	NULL,	'd'},
+		{ NULL,		0,					NULL,	0	}
 	};
 
 	int opt;
@@ -157,6 +161,7 @@ int main(int argc, const char * argv[]) {
 		switch (opt) {
 			case 'h':
 				printHelp();
+				return 0;
 				break;
 			case 'l':
 				listAudioOutputDevices();
@@ -173,9 +178,9 @@ int main(int argc, const char * argv[]) {
 
 	Float32 balance = 0.5;
 
-	if (argc > 0) {
+	if (argc > 1) {
 		char *endptr;
-		balance = strtof_l(argv[0], &endptr, NULL); // Always use the C locale.
+		balance = strtof_l(argv[1], &endptr, NULL); // Always use the C locale.
 
 		if (balance == 0.0 && endptr == argv[1])
 			balance = 0.5;
