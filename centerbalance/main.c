@@ -191,9 +191,22 @@ int main(int argc, const char * argv[]) {
 		char *endptr;
 		balance = strtof_l(argv[1], &endptr, NULL); // Always use the C locale.
 
-		if (balance == 0.0 && endptr == argv[1])
-			balance = 0.5;
-		else {
+		if (balance == 0.0 && endptr == argv[1]) {
+			if (strlen(endptr) != 0) {
+				switch(endptr[0]) {
+					case 'l':
+						balance = 0.0;
+						break;
+					case 'r':
+						balance = 1.0;
+						break;
+					default:
+						balance = 0.5;
+						break;
+				}
+			} else
+				balance = 0.5;
+		} else {
 			balance = balance < 0.0 ? 0.0 : balance;
 			balance = balance > 1.0 ? 1.0 : balance;
 		}
