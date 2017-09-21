@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:centerbalance.xcodeproj">
+      location = "self:/Users/wevah/Projects/balancer/sndctl.xcodeproj">
    </FileRef>
 </Workspace>
