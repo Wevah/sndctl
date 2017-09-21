@@ -1,6 +1,6 @@
 //
 //  main.c
-//  balancer
+//  sndctl
 //
 //  Created by Nate Weaver on 2017-01-13.
 //  Copyright © 2017 Nate Weaver/Derailer. All rights reserved.
@@ -178,13 +178,17 @@ bool setBalance(AudioObjectID devid, Float32 balance) {
 	return result == kAudioHardwareNoError;
 }
 
+void printUsage(void) {
+	printf("\nUsage: %s [-b balance] [-v volume] [-d deviceid] [-l]\n\n", getprogname());
+}
+
 void printHelp(void) {
-	printf("\nUsage: %s [options] [balance]\n"
-		   "Where balance is 0.0 (left) to 1.0 (right) and defaults to 0.5 (center)\n"
-		   "\"l\", \"r\", and \"c\" can be used as synonyms for 0.0, 1.0, and 0.5 respectively\n\n",
-		   getprogname());
-	puts("Options:\n" \
-		 "  -d, --device [deviceid]    Use the specified device ID instead of the current output device.\n"
+	printUsage();
+	puts("Options:\n"
+		 "  -b, --balance=<balance>    Set the balance from 0.0 (left) to 1.0 (right).\n"
+		 "                             'l', 'r', and 'c' are synonyms for 0.0, 1.0, and 0.5, respectively.\n"
+		 "  -v, --volume=<volume>      Set the volume from 0.0 (mute) to 1.0 (max).\n"
+		 "  -d, --device=<deviceid>    Use the specified device ID instead of the current output device.\n"
 		 "  -l, --list                 List available output devices.\n"
 		 "  -h, --help                 Display this help.\n"
 		 );
@@ -192,12 +196,14 @@ void printHelp(void) {
 
 int main(int argc, const char * argv[]) {
 	static struct option longopts[] = {
-		{ "balance",	optional_argument,	NULL,	'b' },
+		{ "balance",	required_argument,	NULL,	'b' },
 		{ "volume",		required_argument,	NULL,	'v' },
+		{ "device",		required_argument,	NULL,	'd' },
+
 		{ "help",		no_argument,		NULL,	'h' },
 		{ "list",		no_argument,		NULL,	'l' },
-		{ "device",		required_argument,	NULL,	'd' },
-		{ NULL,			0,					NULL,	0	}
+		{ "version",	no_argument,		NULL,	'V' },
+		{ NULL,			0,					NULL,	0 }
 	};
 
 	int opt;
@@ -209,41 +215,46 @@ int main(int argc, const char * argv[]) {
 	Float32 volume = 0.0;
 	bool shouldSetVolume = false;
 
-	while ((opt = getopt_long(argc, (char * const *)argv, "b::v:hld:", longopts, NULL)) != -1) {
+	bool shouldPrintUsage = true;
+
+	while ((opt = getopt_long(argc, (char * const *)argv, "b:v:d:hlV", longopts, NULL)) != -1) {
 		switch (opt) {
 			case 'b': {
 				shouldSetBalance = true;
+				shouldPrintUsage = false;
 
-				if (optarg) {
-					char *endptr;
-					balance = strtof_l(optarg, &endptr, NULL); // Always use the C locale.
+				char *endptr;
+				balance = strtof_l(optarg, &endptr, NULL); // Always use the C locale.
 
-					if (balance == 0.0 && endptr == optarg) {
-						if (strlen(endptr) != 0) {
-							switch(endptr[0]) {
-								case 'l':
-									balance = 0.0;
-									break;
-								case 'r':
-									balance = 1.0;
-									break;
-								case 'c':
-									balance = 0.5;
-									break;
-								default:
-									dprintf(STDERR_FILENO, "Invalid argument '%s' to option 'balance'.\n", endptr);
-									shouldSetBalance = false;
-									break;
-							}
-						} else
-							balance = 0.5;
-					}
+				if (balance == 0.0 && endptr == optarg) {
+					if (strlen(endptr) != 0) {
+						switch(endptr[0]) {
+							case 'l':
+							case 'L':
+								balance = 0.0;
+								break;
+							case 'r':
+							case 'R':
+								balance = 1.0;
+								break;
+							case 'c':
+							case 'C':
+								balance = 0.5;
+								break;
+							default:
+								dprintf(STDERR_FILENO, "Invalid argument '%s' to option 'balance'.\n", endptr);
+								shouldSetBalance = false;
+								break;
+						}
+					} else
+						balance = 0.5;
 				}
 
 				break;
 			}
 			case 'v': {
 				shouldSetVolume = true;
+				shouldPrintUsage = false;
 
 				char *endptr;
 				volume = strtof_l(optarg, &endptr, NULL); // Always use the C locale.
@@ -272,6 +283,9 @@ int main(int argc, const char * argv[]) {
 
 	if (shouldSetVolume)
 		setVolume(devid, volume);
+
+	if (shouldPrintUsage)
+		printUsage();
 
 	return 0;
 }

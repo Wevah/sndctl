@@ -48,7 +48,7 @@
 		B2AF5F4D1E28D9CD0008ECF8 = {
 			isa = PBXGroup;
 			children = (
-				B2AF5F581E28D9CD0008ECF8 /* balancer */,
+				B2AF5F581E28D9CD0008ECF8 /* sndctl */,
 				B2AF5F571E28D9CD0008ECF8 /* Products */,
 				B2AF5F601E28D9E40008ECF8 /* Frameworks */,
 			);
@@ -62,13 +62,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		B2AF5F581E28D9CD0008ECF8 /* balancer */ = {
+		B2AF5F581E28D9CD0008ECF8 /* sndctl */ = {
 			isa = PBXGroup;
 			children = (
 				B2AF5F591E28D9CD0008ECF8 /* main.c */,
 				B252F4741ECD1F16008973CB /* Info.plist */,
 			);
-			path = balancer;
+			path = sndctl;
 			sourceTree = "<group>";
 		};
 		B2AF5F601E28D9E40008ECF8 /* Frameworks */ = {
@@ -254,8 +254,8 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = M72QZ9W58G;
-				INFOPLIST_FILE = balancer/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = org.derailer.balancer;
+				INFOPLIST_FILE = sndctl/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = org.derailer.sndctl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -266,8 +266,8 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = M72QZ9W58G;
-				INFOPLIST_FILE = balancer/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = org.derailer.balancer;
+				INFOPLIST_FILE = sndctl/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = org.derailer.sndctl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
