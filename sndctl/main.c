@@ -178,6 +178,34 @@ bool setBalance(AudioObjectID devid, Float32 balance) {
 	return result == kAudioHardwareNoError;
 }
 
+char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
+	const char *cStr = CFStringGetCStringPtr(string, kCFStringEncodingUTF8);
+
+	if (!cStr)
+		CFStringGetCString(string, buf, buflen, kCFStringEncodingUTF8);
+	else
+		strlcpy(buf, cStr, buflen);
+
+	return buf;
+}
+
+void printVersion(void) {
+	CFBundleRef bundle = CFBundleGetMainBundle();
+	char shortVersion[64];
+	char bundleVersion[64];
+	char copyright[64];
+
+	printf("\n"
+		   "    sndctl version %s (v%s) " __DATE__ "\n"
+		   "\n"
+		   "    %s"
+		   "\n\n",
+		   utf8StringCopyFromCFString(CFBundleGetValueForInfoDictionaryKey(bundle, CFSTR("CFBundleShortVersionString")), shortVersion, sizeof(shortVersion)),
+		   utf8StringCopyFromCFString(CFBundleGetValueForInfoDictionaryKey(bundle, CFSTR("CFBundleVersion")), bundleVersion, sizeof(bundleVersion)),
+		   utf8StringCopyFromCFString(CFBundleGetValueForInfoDictionaryKey(bundle, CFSTR("NSHumanReadableCopyright")), copyright, sizeof(copyright))
+		   );
+}
+
 void printUsage(void) {
 	printf("\nUsage: %s [-b balance] [-v volume] [-d deviceid] [-l]\n\n", getprogname());
 }
@@ -271,6 +299,10 @@ int main(int argc, const char * argv[]) {
 				break;
 			case 'd':
 				devid = (AudioObjectID)strtoul(optarg, NULL, 10);
+				break;
+			case 'V':
+				printVersion();
+				return 0;
 				break;
 		}
 	}
