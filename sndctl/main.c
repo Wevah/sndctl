@@ -114,7 +114,7 @@ AudioObjectID defaultOutputDeviceID(void) {
 	return defaultOutputDeviceID;
 }
 
-bool setVolume(AudioObjectID devid, Float32 volume) {
+bool setDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 value) {
 	if (devid == 0)
 		devid = defaultOutputDeviceID();
 
@@ -122,12 +122,12 @@ bool setVolume(AudioObjectID devid, Float32 volume) {
 		return false;
 
 	AudioObjectPropertyAddress volumePropertyAddress = {
-		kAudioHardwareServiceDeviceProperty_VirtualMasterVolume,
+		selector,
 		kAudioObjectPropertyScopeOutput,
 		kAudioObjectPropertyElementMaster
 	};
 
-	OSStatus result = AudioObjectSetPropertyData(devid, &volumePropertyAddress, 0, NULL, sizeof(volume), &volume);
+	OSStatus result = AudioObjectSetPropertyData(devid, &volumePropertyAddress, 0, NULL, sizeof(value), &value);
 
 	switch (result) {
 		case kAudioHardwareNoError:
@@ -136,8 +136,21 @@ bool setVolume(AudioObjectID devid, Float32 volume) {
 			dprintf(STDERR_FILENO, "No audio device exists with ID %u!\n", devid);
 			break;
 		case kAudioHardwareUnknownPropertyError:
-			dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support setting the volume!\n", devid);
+		{
+			const char *selectorName = NULL;
+
+			if (selector == kAudioHardwareServiceDeviceProperty_VirtualMasterBalance)
+				selectorName = "balance";
+			else if (selector == kAudioHardwareServiceDeviceProperty_VirtualMasterVolume)
+				selectorName = "volume";
+
+			if (selectorName)
+				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support setting the %s!\n", devid, selectorName);
+			else
+				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support setting the specified property!\n", devid);
+
 			break;
+		}
 		default:
 			dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d", result);
 			break;
@@ -146,36 +159,12 @@ bool setVolume(AudioObjectID devid, Float32 volume) {
 	return result == kAudioHardwareNoError;
 }
 
+bool setVolume(AudioObjectID devid, Float32 volume) {
+	return setDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, volume);
+}
+
 bool setBalance(AudioObjectID devid, Float32 balance) {
-	if (devid == 0)
-		devid = defaultOutputDeviceID();
-
-	if (devid == 0)
-		return false;
-
-	AudioObjectPropertyAddress balancePropertyAddress = {
-		kAudioHardwareServiceDeviceProperty_VirtualMasterBalance,
-		kAudioObjectPropertyScopeOutput,
-		kAudioObjectPropertyElementMaster
-	};
-
-	OSStatus result = AudioObjectSetPropertyData(devid, &balancePropertyAddress, 0, NULL, sizeof(balance), &balance);
-
-	switch (result) {
-		case kAudioHardwareNoError:
-			break;
-		case kAudioHardwareBadObjectError:
-			dprintf(STDERR_FILENO, "No audio device exists with ID %u!\n", devid);
-			break;
-		case kAudioHardwareUnknownPropertyError:
-			dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support setting the balance!\n", devid);
-			break;
-		default:
-			dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d", result);
-			break;
-	}
-
-	return result == kAudioHardwareNoError;
+	return setDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance);
 }
 
 char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
