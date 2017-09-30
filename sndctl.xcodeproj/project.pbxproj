@@ -26,7 +26,7 @@
 
 /* Begin PBXFileReference section */
 		B252F4741ECD1F16008973CB /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B2683EDE1F741C8500411794 /* sndctl.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = sndctl.1; sourceTree = "<group>"; };
+		B2683EDE1F741C8500411794 /* sndctl.1 */ = {isa = PBXFileReference; explicitFileType = text.man; path = sndctl.1; sourceTree = "<group>"; };
 		B2AF5F561E28D9CD0008ECF8 /* sndctl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sndctl; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2AF5F591E28D9CD0008ECF8 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		B2AF5F611E28D9E40008ECF8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
