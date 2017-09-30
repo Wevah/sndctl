@@ -208,6 +208,7 @@ void printHelp(void) {
 		 "  -d, --device=<deviceid>    Use the specified device ID instead of the current output device.\n"
 		 "  -l, --list                 List available output devices.\n"
 		 "  -h, --help                 Display this help.\n"
+		 "  -V, --version              Display version information.\n"
 		 );
 }
 
