@@ -26,7 +26,7 @@
 
 /* Begin PBXFileReference section */
 		B252F4741ECD1F16008973CB /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B26097231FB2833200A48AA4 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		B26097231FB2833200A48AA4 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		B2683EDE1F741C8500411794 /* sndctl.1 */ = {isa = PBXFileReference; explicitFileType = text.man; path = sndctl.1; sourceTree = "<group>"; };
 		B2AF5F561E28D9CD0008ECF8 /* sndctl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sndctl; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2AF5F591E28D9CD0008ECF8 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
