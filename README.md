@@ -1,7 +1,7 @@
 sndctl
 ======
 
-v1.0 (2017)  
+v1.1 (2019)  
 by Nate Weaver (Wevah)  
 https://derailer.org/
 

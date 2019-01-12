@@ -12,6 +12,7 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <xlocale.h>
 #import <getopt.h>
+#import <Carbon/Carbon.h>
 
 CFStringRef copyNameOfDeviceID(AudioObjectID devid) CF_RETURNS_RETAINED {
 	AudioObjectPropertyAddress theAddress = {
@@ -99,7 +100,7 @@ void listAudioOutputDevices(void) {
 }
 
 AudioObjectID defaultOutputDeviceID(void) {
-	AudioObjectPropertyAddress getDefaultOutputDevicePropertyAddress = {
+	AudioObjectPropertyAddress defaultOutputDevicePropertyAddress = {
 		kAudioHardwarePropertyDefaultOutputDevice,
 		kAudioObjectPropertyScopeGlobal,
 		kAudioObjectPropertyElementMaster
@@ -107,14 +108,29 @@ AudioObjectID defaultOutputDeviceID(void) {
 
 	AudioObjectID defaultOutputDeviceID;
 	UInt32 deviceIDSize = sizeof(defaultOutputDeviceID);
-	OSStatus result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &getDefaultOutputDevicePropertyAddress, 0, NULL, &deviceIDSize, &defaultOutputDeviceID);
+	OSStatus result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &defaultOutputDevicePropertyAddress, 0, NULL, &deviceIDSize, &defaultOutputDeviceID);
 
 	if (result != kAudioHardwareNoError) {
-		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d", result);
+		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", result);
 		return 0;
 	}
 
 	return defaultOutputDeviceID;
+}
+
+void setDefaultOutputDeviceID(AudioObjectID deviceID) {
+	AudioObjectPropertyAddress defaultOutputDevicePropertyAddress = {
+		kAudioHardwarePropertyDefaultOutputDevice,
+		kAudioObjectPropertyScopeGlobal,
+		kAudioObjectPropertyElementMaster
+	};
+	
+	UInt32 deviceIDSize = sizeof(deviceID);
+	OSStatus result = AudioObjectSetPropertyData(kAudioObjectSystemObject, &defaultOutputDevicePropertyAddress, 0, NULL, deviceIDSize, &deviceID);
+
+	if (result != kAudioHardwareNoError) {
+		dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d\n", result);
+	}
 }
 
 bool setDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 value) {
@@ -208,6 +224,7 @@ void printHelp(void) {
 		 "  -b, --balance=<balance>    Set the balance from 0.0 (left) to 1.0 (right).\n"
 		 "                             'l', 'r', and 'c' are synonyms for 0.0, 1.0, and 0.5, respectively.\n"
 		 "  -v, --volume=<volume>      Set the volume from 0.0 (mute) to 1.0 (max).\n"
+		 "  -D, --default=<deviceid>   Set the default audio device."
 		 "  -d, --device=<deviceid>    Use the specified device ID instead of the current output device.\n"
 		 "  -l, --list                 List available output devices.\n"
 		 "  -h, --help                 Display this help.\n"
@@ -219,6 +236,7 @@ int main(int argc, const char * argv[]) {
 	static struct option longopts[] = {
 		{ "balance",	required_argument,	NULL,	'b' },
 		{ "volume",		required_argument,	NULL,	'v' },
+		{ "default",	required_argument,	NULL,	'D' },
 		{ "device",		required_argument,	NULL,	'd' },
 
 		{ "help",		no_argument,		NULL,	'h' },
@@ -238,7 +256,7 @@ int main(int argc, const char * argv[]) {
 
 	bool shouldPrintUsage = true;
 
-	while ((opt = getopt_long(argc, (char * const *)argv, "b:v:d:hlV", longopts, NULL)) != -1) {
+	while ((opt = getopt_long(argc, (char * const *)argv, "b:v:d:D:hlV", longopts, NULL)) != -1) {
 		switch (opt) {
 			case 'b': {
 				shouldSetBalance = true;
@@ -281,6 +299,12 @@ int main(int argc, const char * argv[]) {
 				char *endptr;
 				volume = strtof_l(optarg, &endptr, NULL); // Always use the C locale.
 
+				break;
+			}
+			case 'D': {
+				shouldPrintUsage = false;
+				AudioObjectID devid = (AudioObjectID)strtoul(optarg, NULL, 10);
+				setDefaultOutputDeviceID(devid);
 				break;
 			}
 			case 'h':
