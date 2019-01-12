@@ -224,7 +224,7 @@ void printHelp(void) {
 		 "  -b, --balance=<balance>    Set the balance from 0.0 (left) to 1.0 (right).\n"
 		 "                             'l', 'r', and 'c' are synonyms for 0.0, 1.0, and 0.5, respectively.\n"
 		 "  -v, --volume=<volume>      Set the volume from 0.0 (mute) to 1.0 (max).\n"
-		 "  -D, --default=<deviceid>   Set the default audio device."
+		 "  -D, --default=<deviceid>   Set the default audio device.\n"
 		 "  -d, --device=<deviceid>    Use the specified device ID instead of the current output device.\n"
 		 "  -l, --list                 List available output devices.\n"
 		 "  -h, --help                 Display this help.\n"
