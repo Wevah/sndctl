@@ -6,6 +6,9 @@
 //  Copyright © 2017 Nate Weaver/Derailer. All rights reserved.
 //
 
+// Using #import instead of #include since it's pretty certain that the compiler will
+// support it, given that sndctl is Mac-only.
+
 #import <AudioToolbox/AudioToolbox.h>
 #import <xlocale.h>
 #import <getopt.h>
