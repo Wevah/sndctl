@@ -1,7 +1,7 @@
 sndctl
 ======
 
-v1.1 (2019)  
+v1.2 (2019)  
 by Nate Weaver (Wevah)  
 https://derailer.org/
 
@@ -18,4 +18,4 @@ I originally wrote this to easily correct the output balance after rebooting fro
 
 ----
 
-© 2017 Nate Weaver (Wevah)/Derailer
+© 2017-2019 Nate Weaver (Wevah)/Derailer
