@@ -12,7 +12,6 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <xlocale.h>
 #import <getopt.h>
-#import <Carbon/Carbon.h>
 
 CFStringRef copyNameOfDeviceID(AudioObjectID devid) CF_RETURNS_RETAINED {
 	AudioObjectPropertyAddress theAddress = {
