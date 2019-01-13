@@ -13,7 +13,8 @@
 #import <xlocale.h>
 #import <getopt.h>
 
-CFStringRef copyNameOfDeviceID(AudioObjectID devid) CF_RETURNS_RETAINED {
+CF_RETURNS_RETAINED
+CFStringRef copyNameOfDeviceID(AudioObjectID devid) {
 	AudioObjectPropertyAddress theAddress = {
 		kAudioObjectPropertyName,
 		kAudioObjectPropertyScopeOutput,
@@ -59,7 +60,8 @@ UInt32 numberOfChannelsOfDeviceID(AudioObjectID devid) {
 	return numberOfChannels;
 }
 
-void listAudioOutputDevices(void) {
+CF_RETURNS_RETAINED
+CFArrayRef audioOutputDevices(void) {
 	UInt32 propsize;
 
 	AudioObjectPropertyAddress theAddress = {
@@ -80,22 +82,49 @@ void listAudioOutputDevices(void) {
 	if (result != kAudioHardwareNoError)
 		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", result);
 
+	CFMutableArrayRef devices = CFArrayCreateMutable(kCFAllocatorDefault, nDevices, &kCFTypeArrayCallBacks);
+
 	for (int i = 0; i < nDevices; ++i) {
 		if (numberOfChannelsOfDeviceID(devids[i]) > 0) {
 			CFStringRef name = copyNameOfDeviceID(devids[i]);
-			const char *cName = CFStringGetCStringPtr(name, kCFStringEncodingUTF8);
-			char nameBuffer[64];
 
-			if (!cName) {
-				CFStringGetCString(name, nameBuffer, sizeof(nameBuffer), kCFStringEncodingUTF8);
-				cName = nameBuffer;
-			}
+			CFTypeRef keys[] = { CFSTR("id"), CFSTR("name") };
+			CFNumberRef idNumber = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &devids[i]);
+			CFTypeRef values[] = { idNumber, name };
 
-			printf("%u: %s\n", devids[i], cName);
+			CFDictionaryRef device = CFDictionaryCreate(kCFAllocatorDefault, keys, values, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+			CFArrayAppendValue(devices, device);
 
+			CFRelease(idNumber);
 			CFRelease(name);
 		}
 	}
+
+	return devices;
+}
+
+void listAudioOutputDevices(void) {
+	CFArrayRef devices = audioOutputDevices();
+
+	CFIndex count = CFArrayGetCount(devices);
+
+	for (CFIndex i = 0; i < count; ++i) {
+		CFDictionaryRef device = CFArrayGetValueAtIndex(devices, i);
+		CFNumberRef idval = CFDictionaryGetValue(device, CFSTR("id"));
+		AudioObjectID id;
+		CFNumberGetValue(idval, kCFNumberSInt32Type, &id);
+		CFStringRef name = CFDictionaryGetValue(device, CFSTR("name"));
+
+		const char *cName = CFStringGetCStringPtr(name, kCFStringEncodingUTF8);
+		char nameBuffer[64];
+
+		if (!cName) {
+			CFStringGetCString(name, nameBuffer, sizeof(nameBuffer), kCFStringEncodingUTF8);
+			cName = nameBuffer;
+		}
+	}
+
+	CFRelease(devices);
 }
 
 AudioObjectID defaultOutputDeviceID(void) {
