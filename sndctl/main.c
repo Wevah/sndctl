@@ -172,6 +172,29 @@ char *nameForDeviceProperty(AudioObjectPropertySelector selector) {
 	return NULL;
 }
 
+void printInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter) {
+	switch (result) {
+		case kAudioHardwareBadObjectError:
+			dprintf(STDERR_FILENO, "No audio device exists with ID %u!\n", devid);
+			break;
+		case kAudioHardwareUnknownPropertyError:
+		{
+			const char *selectorName = nameForDeviceProperty(selector);
+			char *action = isSetter ? "setting" : "getting";
+
+			if (selectorName)
+				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support %s the %s!\n", devid, action, selectorName);
+			else
+				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support %s the specified property!\n", devid, action);
+
+			break;
+		}
+		default:
+			dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d", result);
+			break;
+	}
+}
+
 bool getDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 *value) {
 	if (devid == 0)
 		devid = defaultOutputDeviceID();
@@ -190,27 +213,8 @@ bool getDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector
 	if (size != sizeof(*value))
 		return false;
 
-	switch (result) {
-		case kAudioHardwareNoError:
-			break;
-		case kAudioHardwareBadObjectError:
-			dprintf(STDERR_FILENO, "No audio device exists with ID %u!\n", devid);
-			break;
-		case kAudioHardwareUnknownPropertyError:
-		{
-			const char *selectorName = nameForDeviceProperty(selector);
-
-			if (selectorName)
-				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support getting the %s!\n", devid, selectorName);
-			else
-				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support getting the specified property!\n", devid);
-
-			break;
-		}
-		default:
-			dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d", result);
-			break;
-	}
+	if (result != kAudioHardwareNoError)
+		printInfoForError(devid, selector, result, false);
 
 	return result == kAudioHardwareNoError;
 }
@@ -230,27 +234,8 @@ bool setDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector
 
 	OSStatus result = AudioObjectSetPropertyData(devid, &volumePropertyAddress, 0, NULL, sizeof(value), &value);
 
-	switch (result) {
-		case kAudioHardwareNoError:
-			break;
-		case kAudioHardwareBadObjectError:
-			dprintf(STDERR_FILENO, "No audio device exists with ID %u!\n", devid);
-			break;
-		case kAudioHardwareUnknownPropertyError:
-		{
-			const char *selectorName = nameForDeviceProperty(selector);
-
-			if (selectorName)
-				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support setting the %s!\n", devid, selectorName);
-			else
-				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support setting the specified property!\n", devid);
-
-			break;
-		}
-		default:
-			dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d", result);
-			break;
-	}
+	if (result != kAudioHardwareNoError)
+		printInfoForError(devid, selector, result, true);
 
 	return result == kAudioHardwareNoError;
 }
@@ -328,8 +313,10 @@ void printHelp(void) {
 	puts("Options:\n"
 		 "  -b, --balance=<balance>    Set the balance from 0.0 (left) to 1.0 (right).\n"
 		 "                             'l', 'r', and 'c' are synonyms for 0.0, 1.0, and 0.5, respectively.\n"
+		 "  -B, --printbalance         Display the current balance.\n"
 		 "  -v, --volume=<volume>      Set the volume from 0.0 (mute) to 1.0 (max).\n"
-		 "  -d, --device=<deviceid>    Use the specified device ID instead of the current output device.\n"
+		 "  -V, --printvolume          Display the current volume.\n"
+		 "  -d, --device=<deviceid>    Use the specified device ID instead of the default output device.\n"
 		 "  -D, --default=<deviceid>   Set the default audio device.\n"
 		 "  -l, --list                 List available output devices.\n"
 		 "  -h, --help                 Display this help.\n"
@@ -340,15 +327,15 @@ void printHelp(void) {
 int main(int argc, const char * argv[]) {
 	static struct option longopts[] = {
 		{ "balance",		required_argument,	NULL,	'b' },
-		{ "printbalance",	no_argument,		NULL,	'bala' },
+		{ "printbalance",	no_argument,		NULL,	'B' },
 		{ "volume",			required_argument,	NULL,	'v' },
-		{ "printvolume",	no_argument,		NULL,	'volu' },
+		{ "printvolume",	no_argument,		NULL,	'V' },
 		{ "default",		required_argument,	NULL,	'D' },
 		{ "device",			required_argument,	NULL,	'd' },
 
 		{ "help",			no_argument,		NULL,	'h' },
 		{ "list",			no_argument,		NULL,	'l' },
-		{ "version",		no_argument,		NULL,	'V' },
+		{ "version",		no_argument,		NULL,	'vers' },
 		{ NULL,				0,					NULL,	0 }
 	};
 
@@ -366,7 +353,7 @@ int main(int argc, const char * argv[]) {
 	bool shouldPrintVolume = false;
 	bool shouldPrintBalance = false;
 
-	while ((opt = getopt_long(argc, (char * const *)argv, "b:v:d:D:hlV", longopts, NULL)) != -1) {
+	while ((opt = getopt_long(argc, (char * const *)argv, "b:v:d:D:hl", longopts, NULL)) != -1) {
 		switch (opt) {
 			case 'b': {
 				shouldSetBalance = true;
@@ -402,7 +389,7 @@ int main(int argc, const char * argv[]) {
 
 				break;
 			}
-			case 'bala': {
+			case 'B': {
 				shouldPrintBalance = true;
 				shouldPrintUsage = false;
 				break;
@@ -416,7 +403,7 @@ int main(int argc, const char * argv[]) {
 
 				break;
 			}
-			case 'volu': {
+			case 'V': {
 				shouldPrintVolume = true;
 				shouldPrintUsage = false;
 				break;
@@ -438,7 +425,7 @@ int main(int argc, const char * argv[]) {
 			case 'd':
 				devid = (AudioObjectID)strtoul(optarg, NULL, 10);
 				break;
-			case 'V':
+			case 'vers':
 				printVersion();
 				return 0;
 				break;
