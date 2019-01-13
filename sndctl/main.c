@@ -122,6 +122,8 @@ void listAudioOutputDevices(void) {
 			CFStringGetCString(name, nameBuffer, sizeof(nameBuffer), kCFStringEncodingUTF8);
 			cName = nameBuffer;
 		}
+
+		printf("%d: %s\n", id, cName);
 	}
 
 	CFRelease(devices);
@@ -161,6 +163,58 @@ void setDefaultOutputDeviceID(AudioObjectID deviceID) {
 	}
 }
 
+char *nameForDeviceProperty(AudioObjectPropertySelector selector) {
+	if (selector == kAudioHardwareServiceDeviceProperty_VirtualMasterBalance)
+		return "balance";
+	else if (selector == kAudioHardwareServiceDeviceProperty_VirtualMasterVolume)
+		return "volume";
+
+	return NULL;
+}
+
+bool getDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 *value) {
+	if (devid == 0)
+		devid = defaultOutputDeviceID();
+	if (devid == 0)
+		return false;
+
+	AudioObjectPropertyAddress volumePropertyAddress = {
+		selector,
+		kAudioObjectPropertyScopeOutput,
+		kAudioObjectPropertyElementMaster
+	};
+
+	UInt32 size = sizeof(*value);
+	OSStatus result = AudioObjectGetPropertyData(devid, &volumePropertyAddress, 0, NULL, &size, value);
+
+	if (size != sizeof(*value))
+		return false;
+
+	switch (result) {
+		case kAudioHardwareNoError:
+			break;
+		case kAudioHardwareBadObjectError:
+			dprintf(STDERR_FILENO, "No audio device exists with ID %u!\n", devid);
+			break;
+		case kAudioHardwareUnknownPropertyError:
+		{
+			const char *selectorName = nameForDeviceProperty(selector);
+
+			if (selectorName)
+				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support getting the %s!\n", devid, selectorName);
+			else
+				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support getting the specified property!\n", devid);
+
+			break;
+		}
+		default:
+			dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d", result);
+			break;
+	}
+
+	return result == kAudioHardwareNoError;
+}
+
 bool setDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 value) {
 	if (devid == 0)
 		devid = defaultOutputDeviceID();
@@ -184,12 +238,7 @@ bool setDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector
 			break;
 		case kAudioHardwareUnknownPropertyError:
 		{
-			const char *selectorName = NULL;
-
-			if (selector == kAudioHardwareServiceDeviceProperty_VirtualMasterBalance)
-				selectorName = "balance";
-			else if (selector == kAudioHardwareServiceDeviceProperty_VirtualMasterVolume)
-				selectorName = "volume";
+			const char *selectorName = nameForDeviceProperty(selector);
 
 			if (selectorName)
 				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support setting the %s!\n", devid, selectorName);
@@ -212,6 +261,34 @@ bool setVolume(AudioObjectID devid, Float32 volume) {
 
 bool setBalance(AudioObjectID devid, Float32 balance) {
 	return setDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance);
+}
+
+bool printVolume(AudioObjectID devid) {
+	Float32 volume;
+	bool result = getDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, &volume);
+
+	if (result)
+		printf("Volume: %.2f\n", volume);
+
+	return result;
+}
+
+bool printBalance(AudioObjectID devid) {
+	Float32 balance;
+	bool result = getDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, &balance);
+
+	if (result) {
+		if (balance == 0.0)
+			printf("Balance: left\n");
+		else if (balance == 0.5)
+			printf("Balance: center\n");
+		else if (balance == 1.0)
+			printf("Balance: right\n");
+		else
+			printf("Balance: %.2f\n", balance);
+	}
+
+	return result;
 }
 
 char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
@@ -262,15 +339,17 @@ void printHelp(void) {
 
 int main(int argc, const char * argv[]) {
 	static struct option longopts[] = {
-		{ "balance",	required_argument,	NULL,	'b' },
-		{ "volume",		required_argument,	NULL,	'v' },
-		{ "default",	required_argument,	NULL,	'D' },
-		{ "device",		required_argument,	NULL,	'd' },
+		{ "balance",		required_argument,	NULL,	'b' },
+		{ "printbalance",	no_argument,		NULL,	'bala' },
+		{ "volume",			required_argument,	NULL,	'v' },
+		{ "printvolume",	no_argument,		NULL,	'volu' },
+		{ "default",		required_argument,	NULL,	'D' },
+		{ "device",			required_argument,	NULL,	'd' },
 
-		{ "help",		no_argument,		NULL,	'h' },
-		{ "list",		no_argument,		NULL,	'l' },
-		{ "version",	no_argument,		NULL,	'V' },
-		{ NULL,			0,					NULL,	0 }
+		{ "help",			no_argument,		NULL,	'h' },
+		{ "list",			no_argument,		NULL,	'l' },
+		{ "version",		no_argument,		NULL,	'V' },
+		{ NULL,				0,					NULL,	0 }
 	};
 
 	int opt;
@@ -283,6 +362,9 @@ int main(int argc, const char * argv[]) {
 	bool shouldSetVolume = false;
 
 	bool shouldPrintUsage = true;
+
+	bool shouldPrintVolume = false;
+	bool shouldPrintBalance = false;
 
 	while ((opt = getopt_long(argc, (char * const *)argv, "b:v:d:D:hlV", longopts, NULL)) != -1) {
 		switch (opt) {
@@ -320,6 +402,11 @@ int main(int argc, const char * argv[]) {
 
 				break;
 			}
+			case 'bala': {
+				shouldPrintBalance = true;
+				shouldPrintUsage = false;
+				break;
+			}
 			case 'v': {
 				shouldSetVolume = true;
 				shouldPrintUsage = false;
@@ -327,6 +414,11 @@ int main(int argc, const char * argv[]) {
 				char *endptr;
 				volume = strtof_l(optarg, &endptr, NULL); // Always use the C locale.
 
+				break;
+			}
+			case 'volu': {
+				shouldPrintVolume = true;
+				shouldPrintUsage = false;
 				break;
 			}
 			case 'D': {
@@ -361,6 +453,11 @@ int main(int argc, const char * argv[]) {
 
 	if (shouldSetVolume)
 		setVolume(devid, volume);
+
+	if (shouldPrintBalance)
+		printBalance(devid);
+	if (shouldPrintVolume)
+		printVolume(devid);
 
 	if (shouldPrintUsage)
 		printUsage();
