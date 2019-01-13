@@ -353,7 +353,7 @@ int main(int argc, const char * argv[]) {
 	bool shouldPrintVolume = false;
 	bool shouldPrintBalance = false;
 
-	while ((opt = getopt_long(argc, (char * const *)argv, "b:v:d:D:hlBV", longopts, NULL)) != -1) {
+	while ((opt = getopt_long(argc, (char * const *)argv, "b:Bv:Vd:D:hl", longopts, NULL)) != -1) {
 		switch (opt) {
 			case 'b': {
 				shouldSetBalance = true;
