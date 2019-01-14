@@ -13,7 +13,6 @@
 #import <xlocale.h>
 #import <getopt.h>
 
-CF_RETURNS_RETAINED
 CFStringRef copyNameOfDeviceID(AudioObjectID devid) {
 	AudioObjectPropertyAddress theAddress = {
 		kAudioObjectPropertyName,
@@ -60,8 +59,7 @@ UInt32 numberOfChannelsOfDeviceID(AudioObjectID devid) {
 	return numberOfChannels;
 }
 
-CF_RETURNS_RETAINED
-CFArrayRef audioOutputDevices(void) {
+CFArrayRef copyAudioOutputDevices(void) {
 	UInt32 propsize;
 
 	AudioObjectPropertyAddress theAddress = {
@@ -104,7 +102,7 @@ CFArrayRef audioOutputDevices(void) {
 }
 
 void listAudioOutputDevices(void) {
-	CFArrayRef devices = audioOutputDevices();
+	CFArrayRef devices = copyAudioOutputDevices();
 
 	CFIndex count = CFArrayGetCount(devices);
 
