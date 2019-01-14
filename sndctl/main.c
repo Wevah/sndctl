@@ -101,9 +101,19 @@ CFArrayRef copyAudioOutputDevices(void) {
 	return devices;
 }
 
+char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
+	const char *cStr = CFStringGetCStringPtr(string, kCFStringEncodingUTF8);
+
+	if (!cStr)
+		CFStringGetCString(string, buf, buflen, kCFStringEncodingUTF8);
+	else
+		strlcpy(buf, cStr, buflen);
+
+	return buf;
+}
+
 void listAudioOutputDevices(void) {
 	CFArrayRef devices = copyAudioOutputDevices();
-
 	CFIndex count = CFArrayGetCount(devices);
 
 	for (CFIndex i = 0; i < count; ++i) {
@@ -113,15 +123,11 @@ void listAudioOutputDevices(void) {
 		CFNumberGetValue(idval, kCFNumberSInt32Type, &id);
 		CFStringRef name = CFDictionaryGetValue(device, CFSTR("name"));
 
-		const char *cName = CFStringGetCStringPtr(name, kCFStringEncodingUTF8);
 		char nameBuffer[64];
 
-		if (!cName) {
-			CFStringGetCString(name, nameBuffer, sizeof(nameBuffer), kCFStringEncodingUTF8);
-			cName = nameBuffer;
-		}
+		utf8StringCopyFromCFString(name, nameBuffer, sizeof(nameBuffer));
 
-		printf("%d: %s\n", id, cName);
+		printf("%d: %s\n", id, nameBuffer);
 	}
 
 	CFRelease(devices);
@@ -274,17 +280,6 @@ bool printBalance(AudioObjectID devid) {
 	return result;
 }
 
-char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
-	const char *cStr = CFStringGetCStringPtr(string, kCFStringEncodingUTF8);
-
-	if (!cStr)
-		CFStringGetCString(string, buf, buflen, kCFStringEncodingUTF8);
-	else
-		strlcpy(buf, cStr, buflen);
-
-	return buf;
-}
-
 void printVersion(void) {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	char shortVersion[64];
@@ -430,8 +425,8 @@ int main(int argc, const char * argv[]) {
 		}
 	}
 
-	argc -= optind;
-	argv += optind;
+//	argc -= optind;
+//	argv += optind;
 
 	if (shouldSetBalance)
 		setBalance(devid, balance);
