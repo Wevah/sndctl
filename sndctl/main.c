@@ -205,14 +205,14 @@ bool getOutputDeviceFloatProperty(AudioObjectID devid, AudioObjectPropertySelect
 	if (devid == 0)
 		return false;
 
-	AudioObjectPropertyAddress volumePropertyAddress = {
+	AudioObjectPropertyAddress propertyAddress = {
 		selector,
 		kAudioObjectPropertyScopeOutput,
 		kAudioObjectPropertyElementMaster
 	};
 
 	UInt32 size = sizeof(*value);
-	OSStatus result = AudioObjectGetPropertyData(devid, &volumePropertyAddress, 0, NULL, &size, value);
+	OSStatus result = AudioObjectGetPropertyData(devid, &propertyAddress, 0, NULL, &size, value);
 
 	if (size != sizeof(*value))
 		return false;
@@ -230,13 +230,13 @@ bool setDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector
 	if (devid == 0)
 		return false;
 
-	AudioObjectPropertyAddress volumePropertyAddress = {
+	AudioObjectPropertyAddress propertyAddress = {
 		selector,
 		kAudioObjectPropertyScopeOutput,
 		kAudioObjectPropertyElementMaster
 	};
 
-	OSStatus result = AudioObjectSetPropertyData(devid, &volumePropertyAddress, 0, NULL, sizeof(value), &value);
+	OSStatus result = AudioObjectSetPropertyData(devid, &propertyAddress, 0, NULL, sizeof(value), &value);
 
 	if (result != kAudioHardwareNoError)
 		printInfoForError(devid, selector, result, true);
