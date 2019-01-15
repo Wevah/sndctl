@@ -199,7 +199,7 @@ void printInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector
 	}
 }
 
-bool getDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 *value) {
+bool getOutputDeviceFloatProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 *value) {
 	if (devid == 0)
 		devid = defaultOutputDeviceID();
 	if (devid == 0)
@@ -254,7 +254,7 @@ bool setBalance(AudioObjectID devid, Float32 balance) {
 
 bool printVolume(AudioObjectID devid) {
 	Float32 volume;
-	bool result = getDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, &volume);
+	bool result = getOutputDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, &volume);
 
 	if (result)
 		printf("Volume: %.2f\n", volume);
@@ -264,7 +264,7 @@ bool printVolume(AudioObjectID devid) {
 
 bool printBalance(AudioObjectID devid) {
 	Float32 balance;
-	bool result = getDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, &balance);
+	bool result = getOutputDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, &balance);
 
 	if (result) {
 		if (balance == 0.0)
