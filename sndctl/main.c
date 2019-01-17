@@ -280,6 +280,42 @@ bool printBalance(AudioObjectID devid) {
 	return result;
 }
 
+/**
+ Returns the ID of the audio device whose prefix matches \c prefix\n.
+
+ @param prefix The prefix to match, case-insensitively.
+ @return The matched audio device ID, or kAudioDeviceUnknown the prefix does not match exactly one device name.
+ */
+AudioObjectID audioDeviceStartingWithString(char *prefix) {
+	CFArrayRef devices = copyAudioOutputDevices();
+	AudioObjectID devid = kAudioDeviceUnknown;
+
+	CFIndex count = CFArrayGetCount(devices);
+	CFStringRef cfPrefix = CFStringCreateWithCString(kCFAllocatorDefault, prefix, kCFStringEncodingUTF8);
+
+	for (CFIndex i = 0; i < count; ++i) {
+		CFDictionaryRef device = CFArrayGetValueAtIndex(devices, i);
+		CFStringRef name = CFDictionaryGetValue(device, CFSTR("name"));
+
+		CFRange range = CFStringFind(name, cfPrefix, kCFCompareAnchored | kCFCompareCaseInsensitive);
+
+		if (range.location != kCFNotFound) {
+			if (devid == kAudioDeviceUnknown) {
+				CFNumberRef devidnum = CFDictionaryGetValue(device, CFSTR("id"));
+				CFNumberGetValue(devidnum, kCFNumberIntType, &devid);
+			} else {
+				devid = kAudioDeviceUnknown;
+				break;
+			}
+		}
+	}
+
+	CFRelease(cfPrefix);
+	CFRelease(devices);
+
+	return devid;
+}
+
 void printVersion(void) {
 	CFBundleRef bundle = CFBundleGetMainBundle();
 	char shortVersion[64];
@@ -401,12 +437,6 @@ int main(int argc, const char * argv[]) {
 				shouldPrintUsage = false;
 				break;
 			}
-			case 'D': {
-				shouldPrintUsage = false;
-				AudioObjectID devid = (AudioObjectID)strtoul(optarg, NULL, 10);
-				setDefaultOutputDeviceID(devid);
-				break;
-			}
 			case 'h':
 				printHelp();
 				return 0;
@@ -417,7 +447,25 @@ int main(int argc, const char * argv[]) {
 				break;
 			case 'd':
 				devid = (AudioObjectID)strtoul(optarg, NULL, 10);
+
+				if (devid == 0 && errno == EINVAL) {
+					devid = audioDeviceStartingWithString(optarg);
+					printf("Using device id %u.\n", devid);
+				}
+
 				break;
+			case 'D': {
+				shouldPrintUsage = false;
+				AudioObjectID newDefaultId = (AudioObjectID)strtoul(optarg, NULL, 10);
+				
+				if (newDefaultId == 0 && errno == EINVAL) {
+					newDefaultId = audioDeviceStartingWithString(optarg);
+					printf("Setting default device id to %u.\n", newDefaultId);
+				}
+
+				setDefaultOutputDeviceID(newDefaultId);
+				break;
+			}
 			case 'vers':
 				printVersion();
 				return 0;
