@@ -256,7 +256,7 @@ char *SndCtlInfoForError(AudioObjectID devid, AudioObjectPropertySelector select
 
 	switch (result) {
 		case kAudioHardwareBadObjectError:
-			snprintf(infoString, sizeof(infoString), "No audio device exists with ID %u!\n", devid);
+			snprintf(infoString, sizeof(infoString), "No audio device exists with ID %u!", devid);
 			break;
 		case kAudioHardwareUnknownPropertyError:
 		{
@@ -264,9 +264,9 @@ char *SndCtlInfoForError(AudioObjectID devid, AudioObjectPropertySelector select
 			char *action = isSetter ? "setting" : "getting";
 
 			if (selectorName)
-				snprintf(infoString, sizeof(infoString), "The audio device with ID %u doesn't support %s the %s!\n", devid, action, selectorName);
+				snprintf(infoString, sizeof(infoString), "The audio device with ID %u doesn't support %s the %s!", devid, action, selectorName);
 			else
-				snprintf(infoString, sizeof(infoString), "The audio device with ID %u doesn't support %s the specified property!\n", devid, action);
+				snprintf(infoString, sizeof(infoString), "The audio device with ID %u doesn't support %s the specified property!", devid, action);
 
 			break;
 		}
@@ -279,5 +279,5 @@ char *SndCtlInfoForError(AudioObjectID devid, AudioObjectPropertySelector select
 }
 
 void SndCtlPrintInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter) {
-	dprintf(STDERR_FILENO, "%s", SndCtlInfoForError(devid, selector, result, isSetter));
+	dprintf(STDERR_FILENO, "%s\n", SndCtlInfoForError(devid, selector, result, isSetter));
 }
