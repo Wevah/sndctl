@@ -13,7 +13,6 @@
 #import <getopt.h>
 #import "SndCtlAudioUtils.h"
 
-
 char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
 	const char *cStr = CFStringGetCStringPtr(string, kCFStringEncodingUTF8);
 
@@ -77,7 +76,6 @@ bool printBalance(AudioObjectID devid) {
 
 	return false;
 }
-
 
 void printVersion(void) {
 	CFBundleRef bundle = CFBundleGetMainBundle();
