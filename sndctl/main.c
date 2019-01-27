@@ -12,94 +12,8 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <xlocale.h>
 #import <getopt.h>
+#import "SndCtlAudioUtils.h"
 
-CFStringRef copyNameOfDeviceID(AudioObjectID devid) {
-	AudioObjectPropertyAddress theAddress = {
-		kAudioObjectPropertyName,
-		kAudioObjectPropertyScopeOutput,
-		0
-	};
-
-	CFStringRef name;
-	UInt32 maxlen = sizeof(name);
-
-	OSStatus result = AudioObjectGetPropertyData(devid, &theAddress, 0, NULL, &maxlen, &name);
-
-	if (result != kAudioHardwareNoError)
-		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", result);
-
-	return name;
-}
-
-UInt32 numberOfChannelsOfDeviceID(AudioObjectID devid) {
-	AudioObjectPropertyAddress theAddress = {
-		kAudioDevicePropertyStreamConfiguration,
-		kAudioDevicePropertyScopeOutput,
-		0
-	};
-
-	UInt32 propSize;
-	UInt32 numberOfChannels = 0;
-
-	OSStatus result = AudioObjectGetPropertyDataSize(devid, &theAddress, 0, NULL, &propSize);
-
-	if (result != kAudioHardwareNoError)
-		return 0;
-
-	AudioBufferList *buflist = (AudioBufferList *)malloc(propSize);
-
-	result = AudioObjectGetPropertyData(devid, &theAddress, 0, NULL, &propSize, buflist);
-
-	if (result == kAudioHardwareNoError) {
-		for (UInt32 i = 0; i < buflist->mNumberBuffers; ++i)
-			numberOfChannels += buflist->mBuffers[i].mNumberChannels;
-	}
-
-	free(buflist);
-	return numberOfChannels;
-}
-
-CFArrayRef copyAudioOutputDevices(void) {
-	UInt32 propsize;
-
-	AudioObjectPropertyAddress theAddress = {
-		kAudioHardwarePropertyDevices,
-		kAudioObjectPropertyScopeGlobal,
-		kAudioObjectPropertyElementMaster
-	};
-
-	OSStatus result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize);
-
-	if (result != kAudioHardwareNoError)
-		dprintf(STDERR_FILENO, "AudioObjectGetPropertyDataSize: %d\n", result);
-
-	int nDevices = propsize / sizeof(AudioObjectID);
-	AudioObjectID devids[nDevices];
-	result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize, devids);
-
-	if (result != kAudioHardwareNoError)
-		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", result);
-
-	CFMutableArrayRef devices = CFArrayCreateMutable(kCFAllocatorDefault, nDevices, &kCFTypeArrayCallBacks);
-
-	for (int i = 0; i < nDevices; ++i) {
-		if (numberOfChannelsOfDeviceID(devids[i]) > 0) {
-			CFStringRef name = copyNameOfDeviceID(devids[i]);
-
-			CFTypeRef keys[] = { CFSTR("id"), CFSTR("name") };
-			CFNumberRef idNumber = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &devids[i]);
-			CFTypeRef values[] = { idNumber, name };
-
-			CFDictionaryRef device = CFDictionaryCreate(kCFAllocatorDefault, keys, values, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-			CFArrayAppendValue(devices, device);
-
-			CFRelease(idNumber);
-			CFRelease(name);
-		}
-	}
-
-	return devices;
-}
 
 char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
 	const char *cStr = CFStringGetCStringPtr(string, kCFStringEncodingUTF8);
@@ -113,7 +27,7 @@ char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
 }
 
 void listAudioOutputDevices(void) {
-	CFArrayRef devices = copyAudioOutputDevices();
+	CFArrayRef devices = SndCtlCopyAudioOutputDevices();
 	CFIndex count = CFArrayGetCount(devices);
 
 	for (CFIndex i = 0; i < count; ++i) {
@@ -133,48 +47,6 @@ void listAudioOutputDevices(void) {
 	CFRelease(devices);
 }
 
-AudioObjectID defaultOutputDeviceID(void) {
-	AudioObjectPropertyAddress defaultOutputDevicePropertyAddress = {
-		kAudioHardwarePropertyDefaultOutputDevice,
-		kAudioObjectPropertyScopeGlobal,
-		kAudioObjectPropertyElementMaster
-	};
-
-	AudioObjectID defaultOutputDeviceID;
-	UInt32 deviceIDSize = sizeof(defaultOutputDeviceID);
-	OSStatus result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &defaultOutputDevicePropertyAddress, 0, NULL, &deviceIDSize, &defaultOutputDeviceID);
-
-	if (result != kAudioHardwareNoError) {
-		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", result);
-		return 0;
-	}
-
-	return defaultOutputDeviceID;
-}
-
-void setDefaultOutputDeviceID(AudioObjectID deviceID) {
-	AudioObjectPropertyAddress defaultOutputDevicePropertyAddress = {
-		kAudioHardwarePropertyDefaultOutputDevice,
-		kAudioObjectPropertyScopeGlobal,
-		kAudioObjectPropertyElementMaster
-	};
-	
-	UInt32 deviceIDSize = sizeof(deviceID);
-	OSStatus result = AudioObjectSetPropertyData(kAudioObjectSystemObject, &defaultOutputDevicePropertyAddress, 0, NULL, deviceIDSize, &deviceID);
-
-	if (result != kAudioHardwareNoError) {
-		dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d\n", result);
-	}
-}
-
-char *nameForDeviceProperty(AudioObjectPropertySelector selector) {
-	if (selector == kAudioHardwareServiceDeviceProperty_VirtualMasterBalance)
-		return "balance";
-	else if (selector == kAudioHardwareServiceDeviceProperty_VirtualMasterVolume)
-		return "volume";
-
-	return NULL;
-}
 
 void printInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter) {
 	switch (result) {
@@ -183,7 +55,7 @@ void printInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector
 			break;
 		case kAudioHardwareUnknownPropertyError:
 		{
-			const char *selectorName = nameForDeviceProperty(selector);
+			const char *selectorName = SndCtlNameForDeviceProperty(selector);
 			char *action = isSetter ? "setting" : "getting";
 
 			if (selectorName)
@@ -199,71 +71,9 @@ void printInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector
 	}
 }
 
-bool getOutputDeviceFloatProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 *value) {
-	if (devid == 0)
-		devid = defaultOutputDeviceID();
-	if (devid == 0)
-		return false;
-
-	AudioObjectPropertyAddress propertyAddress = {
-		selector,
-		kAudioObjectPropertyScopeOutput,
-		kAudioObjectPropertyElementMaster
-	};
-
-	UInt32 size = sizeof(*value);
-	OSStatus result = AudioObjectGetPropertyData(devid, &propertyAddress, 0, NULL, &size, value);
-
-	if (size != sizeof(*value))
-		return false;
-
-	if (result != kAudioHardwareNoError)
-		printInfoForError(devid, selector, result, false);
-
-	return result == kAudioHardwareNoError;
-}
-
-bool setDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 value) {
-	if (devid == 0)
-		devid = defaultOutputDeviceID();
-
-	if (devid == 0)
-		return false;
-
-	AudioObjectPropertyAddress propertyAddress = {
-		selector,
-		kAudioObjectPropertyScopeOutput,
-		kAudioObjectPropertyElementMaster
-	};
-
-	OSStatus result = AudioObjectSetPropertyData(devid, &propertyAddress, 0, NULL, sizeof(value), &value);
-
-	if (result != kAudioHardwareNoError)
-		printInfoForError(devid, selector, result, true);
-
-	return result == kAudioHardwareNoError;
-}
-
-bool setVolume(AudioObjectID devid, Float32 volume) {
-	return setDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, volume);
-}
-
-bool setBalance(AudioObjectID devid, Float32 balance) {
-	return setDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance);
-}
-
-Float32 currentVolume(AudioObjectID devid) {
-	Float32 volume;
-	bool result = getOutputDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, &volume);
-
-	if (result)
-		return volume;
-
-	return NAN;
-}
 
 bool printVolume(AudioObjectID devid) {
-	Float32 volume = currentVolume(devid);
+	Float32 volume = SndCtlCurrentVolume(devid);
 
 	if (!isnan(volume)) {
 		printf("Volume: %.2f\n", volume);
@@ -273,18 +83,9 @@ bool printVolume(AudioObjectID devid) {
 	return false;
 }
 
-Float32 currentBalance(AudioObjectID devid) {
-	Float32 balance;
-	bool result = getOutputDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, &balance);
-
-	if (result)
-		return balance;
-
-	return NAN;
-}
 
 bool printBalance(AudioObjectID devid) {
-	Float32 balance = currentBalance(devid);
+	Float32 balance = SndCtlCurrentBalance(devid);
 
 	if (!isnan(balance)) {
 		if (balance == 0.0)
@@ -302,59 +103,6 @@ bool printBalance(AudioObjectID devid) {
 	return false;
 }
 
-bool incrementBalance(AudioObjectID devid, Float32 delta) {
-	Float32 balance = currentBalance(devid);
-
-	if (!isnan(balance))
-		return setBalance(devid, balance + delta);
-
-	return false;
-}
-
-bool incrementVolume(AudioObjectID devid, Float32 delta) {
-	Float32 volume = currentVolume(devid);
-
-	if (!isnan(volume))
-		return setVolume(devid, volume + delta);
-
-	return false;
-}
-
-/**
- Returns the ID of the audio device whose prefix matches \c prefix\n.
-
- @param prefix The prefix to match, case-insensitively.
- @return The matched audio device ID, or kAudioDeviceUnknown the prefix does not match exactly one device name.
- */
-AudioObjectID audioDeviceStartingWithString(char *prefix) {
-	CFArrayRef devices = copyAudioOutputDevices();
-	AudioObjectID devid = kAudioDeviceUnknown;
-
-	CFIndex count = CFArrayGetCount(devices);
-	CFStringRef cfPrefix = CFStringCreateWithCString(kCFAllocatorDefault, prefix, kCFStringEncodingUTF8);
-
-	for (CFIndex i = 0; i < count; ++i) {
-		CFDictionaryRef device = CFArrayGetValueAtIndex(devices, i);
-		CFStringRef name = CFDictionaryGetValue(device, CFSTR("name"));
-
-		CFRange range = CFStringFind(name, cfPrefix, kCFCompareAnchored | kCFCompareCaseInsensitive);
-
-		if (range.location != kCFNotFound) {
-			if (devid == kAudioDeviceUnknown) {
-				CFNumberRef devidnum = CFDictionaryGetValue(device, CFSTR("id"));
-				CFNumberGetValue(devidnum, kCFNumberIntType, &devid);
-			} else {
-				devid = kAudioDeviceUnknown;
-				break;
-			}
-		}
-	}
-
-	CFRelease(cfPrefix);
-	CFRelease(devices);
-
-	return devid;
-}
 
 void printVersion(void) {
 	CFBundleRef bundle = CFBundleGetMainBundle();
@@ -499,7 +247,7 @@ int main(int argc, const char * argv[]) {
 				devid = (AudioObjectID)strtoul(optarg, NULL, 10);
 
 				if (devid == 0 && errno == EINVAL) {
-					devid = audioDeviceStartingWithString(optarg);
+					devid = SndCtlAudioDeviceStartingWithString(optarg);
 					printf("Using device id %u.\n", devid);
 				}
 
@@ -509,11 +257,11 @@ int main(int argc, const char * argv[]) {
 				AudioObjectID newDefaultId = (AudioObjectID)strtoul(optarg, NULL, 10);
 				
 				if (newDefaultId == 0 && errno == EINVAL) {
-					newDefaultId = audioDeviceStartingWithString(optarg);
+					newDefaultId = SndCtlAudioDeviceStartingWithString(optarg);
 					printf("Setting default device id to %u.\n", newDefaultId);
 				}
 
-				setDefaultOutputDeviceID(newDefaultId);
+				SndCtlSetDefaultOutputDeviceID(newDefaultId);
 				break;
 			}
 			case 'vers':
@@ -528,16 +276,16 @@ int main(int argc, const char * argv[]) {
 
 	if (shouldSetBalance) {
 		if (balanceIsDelta)
-			incrementBalance(devid, balance);
+			SndCtlIncrementBalance(devid, balance);
 		else
-			setBalance(devid, balance);
+			SndCtlSetBalance(devid, balance);
 	}
 
 	if (shouldSetVolume) {
 		if (volumeIsDelta)
-			incrementVolume(devid, volume);
+			SndCtlIncrementVolume(devid, volume);
 		else
-			setVolume(devid, volume);
+			SndCtlSetVolume(devid, volume);
 	}
 
 	if (shouldPrintBalance)

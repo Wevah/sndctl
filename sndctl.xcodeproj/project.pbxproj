@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B2A74E0B21FE2E9B005098FB /* SndCtlAudioUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = B2A74E0A21FE2E9B005098FB /* SndCtlAudioUtils.c */; };
 		B2AF5F5A1E28D9CD0008ECF8 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = B2AF5F591E28D9CD0008ECF8 /* main.c */; };
 		B2AF5F621E28D9E40008ECF8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2AF5F611E28D9E40008ECF8 /* CoreAudio.framework */; };
 		B2AF5F641E28DB700008ECF8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2AF5F631E28DB700008ECF8 /* AudioToolbox.framework */; };
@@ -28,6 +29,8 @@
 		B252F4741ECD1F16008973CB /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B26097231FB2833200A48AA4 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		B2683EDE1F741C8500411794 /* sndctl.1 */ = {isa = PBXFileReference; explicitFileType = text.man; path = sndctl.1; sourceTree = "<group>"; };
+		B2A74E0921FE2E9B005098FB /* SndCtlAudioUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SndCtlAudioUtils.h; sourceTree = "<group>"; };
+		B2A74E0A21FE2E9B005098FB /* SndCtlAudioUtils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SndCtlAudioUtils.c; sourceTree = "<group>"; };
 		B2AF5F561E28D9CD0008ECF8 /* sndctl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sndctl; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2AF5F591E28D9CD0008ECF8 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		B2AF5F611E28D9E40008ECF8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -71,6 +74,8 @@
 				B252F4741ECD1F16008973CB /* Info.plist */,
 				B2683EDE1F741C8500411794 /* sndctl.1 */,
 				B26097231FB2833200A48AA4 /* README.md */,
+				B2A74E0921FE2E9B005098FB /* SndCtlAudioUtils.h */,
+				B2A74E0A21FE2E9B005098FB /* SndCtlAudioUtils.c */,
 			);
 			path = sndctl;
 			sourceTree = "<group>";
@@ -142,6 +147,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B2A74E0B21FE2E9B005098FB /* SndCtlAudioUtils.c in Sources */,
 				B2AF5F5A1E28D9CD0008ECF8 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
