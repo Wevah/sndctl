@@ -12,8 +12,20 @@
 #include <stdio.h>
 #include <AudioToolbox/AudioToolbox.h>
 
-CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID devid);
 
+/**
+ Copy the name of an audio device.
+ @param deviceid	The ID of the audio device.
+ @return The device's name, or \c NULL if an error occurred.
+ The caller is responsible for releasing the returned value.
+ */
+CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID deviceid);
+
+/**
+ Get the number of channels of an audio device.
+ @return The number of channels.
+ @discussion Usually returns \c 2\n.
+ */
 UInt32 SndCtlNumberOfChannelsOfDeviceID(AudioObjectID devid);
 
 /// Key representing an attribute of an audio device.
@@ -40,6 +52,10 @@ extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
  */
 CFArrayRef SndCtlCopyAudioOutputDevices(void);
 
+/**
+ Get the ID of the current default audio output device.
+ @return The ID of the default device.
+ */
 AudioObjectID SndCtlDefaultOutputDeviceID(void);
 
 void SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceID);

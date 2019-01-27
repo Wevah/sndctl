@@ -22,7 +22,7 @@ CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID deviceid) {
 	CFStringRef name;
 	UInt32 maxlen = sizeof(name);
 
-	OSStatus result = AudioObjectGetPropertyData(devid, &theAddress, 0, NULL, &maxlen, &name);
+	OSStatus result = AudioObjectGetPropertyData(deviceid, &theAddress, 0, NULL, &maxlen, &name);
 
 	if (result != kAudioHardwareNoError)
 		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", result);
