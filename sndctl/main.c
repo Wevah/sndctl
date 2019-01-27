@@ -252,21 +252,41 @@ bool setBalance(AudioObjectID devid, Float32 balance) {
 	return setDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance);
 }
 
-bool printVolume(AudioObjectID devid) {
+Float32 currentVolume(AudioObjectID devid) {
 	Float32 volume;
 	bool result = getOutputDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, &volume);
 
 	if (result)
-		printf("Volume: %.2f\n", volume);
+		return volume;
 
-	return result;
+	return NAN;
 }
 
-bool printBalance(AudioObjectID devid) {
+bool printVolume(AudioObjectID devid) {
+	Float32 volume = currentVolume(devid);
+
+	if (!isnan(volume)) {
+		printf("Volume: %.2f\n", volume);
+		return true;
+	}
+
+	return false;
+}
+
+Float32 currentBalance(AudioObjectID devid) {
 	Float32 balance;
 	bool result = getOutputDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, &balance);
 
-	if (result) {
+	if (result)
+		return balance;
+
+	return NAN;
+}
+
+bool printBalance(AudioObjectID devid) {
+	Float32 balance = currentBalance(devid);
+
+	if (!isnan(balance)) {
 		if (balance == 0.0)
 			printf("Balance: left\n");
 		else if (balance == 0.5)
@@ -275,9 +295,29 @@ bool printBalance(AudioObjectID devid) {
 			printf("Balance: right\n");
 		else
 			printf("Balance: %.2f\n", balance);
+
+		return true;
 	}
 
-	return result;
+	return false;
+}
+
+bool incrementBalance(AudioObjectID devid, Float32 delta) {
+	Float32 balance = currentBalance(devid);
+
+	if (!isnan(balance))
+		return setBalance(devid, balance + delta);
+
+	return false;
+}
+
+bool incrementVolume(AudioObjectID devid, Float32 delta) {
+	Float32 volume = currentVolume(devid);
+
+	if (!isnan(volume))
+		return setVolume(devid, volume + delta);
+
+	return false;
 }
 
 /**
@@ -353,6 +393,10 @@ void printHelp(void) {
 		 );
 }
 
+static bool isDelta(char *str) {
+	return str && strlen(str) > 1 && (str[0] == '+' || str[0] == '-');
+}
+
 int main(int argc, const char * argv[]) {
 	static struct option longopts[] = {
 		{ "balance",		required_argument,	NULL,	'b' },
@@ -381,12 +425,16 @@ int main(int argc, const char * argv[]) {
 
 	bool shouldPrintVolume = false;
 	bool shouldPrintBalance = false;
+	bool balanceIsDelta = false;
+	bool volumeIsDelta = false;
 
 	while ((opt = getopt_long(argc, (char * const *)argv, "b:Bv:Vd:D:hl", longopts, NULL)) != -1) {
 		switch (opt) {
 			case 'b': {
 				shouldSetBalance = true;
 				shouldPrintUsage = false;
+
+				balanceIsDelta = isDelta(optarg);
 
 				char *endptr;
 				balance = strtof_l(optarg, &endptr, NULL); // Always use the C locale.
@@ -426,6 +474,8 @@ int main(int argc, const char * argv[]) {
 			case 'v': {
 				shouldSetVolume = true;
 				shouldPrintUsage = false;
+
+				volumeIsDelta = isDelta(optarg);
 
 				char *endptr;
 				volume = strtof_l(optarg, &endptr, NULL); // Always use the C locale.
@@ -476,11 +526,19 @@ int main(int argc, const char * argv[]) {
 //	argc -= optind;
 //	argv += optind;
 
-	if (shouldSetBalance)
-		setBalance(devid, balance);
+	if (shouldSetBalance) {
+		if (balanceIsDelta)
+			incrementBalance(devid, balance);
+		else
+			setBalance(devid, balance);
+	}
 
-	if (shouldSetVolume)
-		setVolume(devid, volume);
+	if (shouldSetVolume) {
+		if (volumeIsDelta)
+			incrementVolume(devid, volume);
+		else
+			setVolume(devid, volume);
+	}
 
 	if (shouldPrintBalance)
 		printBalance(devid);
