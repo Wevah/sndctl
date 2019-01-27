@@ -9,7 +9,6 @@
 // Using #import instead of #include since it's pretty certain that the compiler will
 // support it, given that sndctl is Mac-only.
 
-#import <AudioToolbox/AudioToolbox.h>
 #import <xlocale.h>
 #import <getopt.h>
 #import "SndCtlAudioUtils.h"
@@ -48,9 +47,10 @@ void listAudioOutputDevices(void) {
 }
 
 bool printVolume(AudioObjectID devid) {
-	Float32 volume = SndCtlCurrentVolume(devid);
+	Float32 volume;
+	OSStatus result = SndCtlGetCurrentVolume(devid, &volume);
 
-	if (!isnan(volume)) {
+	if (result == kAudioHardwareNoError) {
 		printf("Volume: %.2f\n", volume);
 		return true;
 	}
@@ -58,11 +58,11 @@ bool printVolume(AudioObjectID devid) {
 	return false;
 }
 
-
 bool printBalance(AudioObjectID devid) {
-	Float32 balance = SndCtlCurrentBalance(devid);
+	Float32 balance;
+	OSStatus result = SndCtlGetCurrentBalance(devid, &balance);
 
-	if (!isnan(balance)) {
+	if (result == kAudioHardwareNoError) {
 		if (balance == 0.0)
 			printf("Balance: left\n");
 		else if (balance == 0.5)

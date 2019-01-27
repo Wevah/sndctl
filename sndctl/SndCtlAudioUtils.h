@@ -24,21 +24,21 @@ void SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceID);
 
 char *SndCtlNameForDeviceProperty(AudioObjectPropertySelector selector);
 
-bool SndCtlGetOutputDeviceFloatProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 *value);
+OSStatus SndCtlGetOutputDeviceFloatProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 *value);
 
-bool SndCtlSetDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 value);
+OSStatus SndCtlSetDeviceFloatProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 value);
 
-bool SndCtlSetVolume(AudioObjectID devid, Float32 volume);
+OSStatus SndCtlSetVolume(AudioObjectID devid, Float32 volume);
 
-bool SndCtlSetBalance(AudioObjectID devid, Float32 balance);
+OSStatus SndCtlSetBalance(AudioObjectID devid, Float32 balance);
 
-Float32 SndCtlCurrentVolume(AudioObjectID devid);
+OSStatus SndCtlGetCurrentVolume(AudioObjectID devid, Float32 *volume);
 
-Float32 SndCtlCurrentBalance(AudioObjectID devid);
+OSStatus SndCtlGetCurrentBalance(AudioObjectID devid, Float32 *volume);
 
-bool SndCtlIncrementVolume(AudioObjectID devid, Float32 delta);
+OSStatus SndCtlIncrementVolume(AudioObjectID devid, Float32 delta);
 
-bool SndCtlIncrementBalance(AudioObjectID devid, Float32 delta);
+OSStatus SndCtlIncrementBalance(AudioObjectID devid, Float32 delta);
 
 /**
  Returns the ID of the audio device whose prefix matches \c prefix\n.

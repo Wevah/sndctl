@@ -139,7 +139,7 @@ char *SndCtlNameForDeviceProperty(AudioObjectPropertySelector selector) {
 	return NULL;
 }
 
-bool SndCtlGetOutputDeviceFloatProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 *value) {
+OSStatus SndCtlGetOutputDeviceFloatProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 *value) {
 	if (devid == 0)
 		devid = SndCtlDefaultOutputDeviceID();
 	if (devid == 0)
@@ -157,13 +157,13 @@ bool SndCtlGetOutputDeviceFloatProperty(AudioObjectID devid, AudioObjectProperty
 	if (size != sizeof(*value))
 		return false;
 
-	if (result != kAudioHardwareNoError)
-		SndCtlPrintInfoForError(devid, selector, result, false);
+//	if (result != kAudioHardwareNoError)
+//		SndCtlPrintInfoForError(devid, selector, result, false);
 
-	return result == kAudioHardwareNoError;
+	return result;
 }
 
-bool SndCtlSetDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 value) {
+OSStatus SndCtlSetDeviceFloatProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 value) {
 	if (devid == 0)
 		devid = SndCtlDefaultOutputDeviceID();
 
@@ -178,64 +178,49 @@ bool SndCtlSetDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector se
 
 	OSStatus result = AudioObjectSetPropertyData(devid, &propertyAddress, 0, NULL, sizeof(value), &value);
 
-	if (result != kAudioHardwareNoError)
-		SndCtlPrintInfoForError(devid, selector, result, true);
+//	if (result != kAudioHardwareNoError)
+//		SndCtlPrintInfoForError(devid, selector, result, true);
 
-	return result == kAudioHardwareNoError;
+	return result;
 }
 
-bool SndCtlSetVolume(AudioObjectID devid, Float32 volume) {
-	return SndCtlSetDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, volume);
+OSStatus SndCtlSetVolume(AudioObjectID devid, Float32 volume) {
+	return SndCtlSetDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, volume);
 }
 
-bool SndCtlSetBalance(AudioObjectID devid, Float32 balance) {
-	return SndCtlSetDeviceProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance);
+OSStatus SndCtlSetBalance(AudioObjectID devid, Float32 balance) {
+	return SndCtlSetDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance);
 }
 
-Float32 SndCtlCurrentVolume(AudioObjectID devid) {
-	Float32 volume;
-	bool result = SndCtlGetOutputDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, &volume);
-
-	if (result)
-		return volume;
-
-	return NAN;
+OSStatus SndCtlGetCurrentVolume(AudioObjectID devid, Float32 *volume) {
+	bool result = SndCtlGetOutputDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, volume);
+	return result;
 }
 
-Float32 SndCtlCurrentBalance(AudioObjectID devid) {
+OSStatus SndCtlGetCurrentBalance(AudioObjectID devid, Float32 *balance) {
+	return SndCtlGetOutputDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance);
+}
+
+OSStatus SndCtlIncrementBalance(AudioObjectID devid, Float32 delta) {
 	Float32 balance;
-	bool result = SndCtlGetOutputDeviceFloatProperty(devid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, &balance);
+	OSStatus result = SndCtlGetCurrentBalance(devid, &balance);
 
-	if (result)
-		return balance;
-
-	return NAN;
-}
-
-bool SndCtlIncrementBalance(AudioObjectID devid, Float32 delta) {
-	Float32 balance = SndCtlCurrentBalance(devid);
-
-	if (!isnan(balance))
+	if (result == kAudioHardwareNoError)
 		return SndCtlSetBalance(devid, balance + delta);
 
-	return false;
+	return result;
 }
 
-bool SndCtlIncrementVolume(AudioObjectID devid, Float32 delta) {
-	Float32 volume = SndCtlCurrentVolume(devid);
+OSStatus SndCtlIncrementVolume(AudioObjectID devid, Float32 delta) {
+	Float32 volume;
+	OSStatus result = SndCtlGetCurrentVolume(devid, &volume);
 
-	if (!isnan(volume))
+	if (result == kAudioHardwareNoError)
 		return SndCtlSetVolume(devid, volume + delta);
 
-	return false;
+	return result;
 }
 
-/**
- Returns the ID of the audio device whose prefix matches \c prefix\n.
-
- @param prefix The prefix to match, case-insensitively.
- @return The matched audio device ID, or kAudioDeviceUnknown the prefix does not match exactly one device name.
- */
 AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix) {
 	CFArrayRef devices = SndCtlCopyAudioOutputDevices();
 	AudioObjectID devid = kAudioDeviceUnknown;
@@ -266,10 +251,12 @@ AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix) {
 	return devid;
 }
 
-void SndCtlPrintInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter) {
+char *SndCtlInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter) {
+	static char infoString[256];
+
 	switch (result) {
 		case kAudioHardwareBadObjectError:
-			dprintf(STDERR_FILENO, "No audio device exists with ID %u!\n", devid);
+			snprintf(infoString, sizeof(infoString), "No audio device exists with ID %u!\n", devid);
 			break;
 		case kAudioHardwareUnknownPropertyError:
 		{
@@ -277,14 +264,20 @@ void SndCtlPrintInfoForError(AudioObjectID devid, AudioObjectPropertySelector se
 			char *action = isSetter ? "setting" : "getting";
 
 			if (selectorName)
-				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support %s the %s!\n", devid, action, selectorName);
+				snprintf(infoString, sizeof(infoString), "The audio device with ID %u doesn't support %s the %s!\n", devid, action, selectorName);
 			else
-				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support %s the specified property!\n", devid, action);
+				snprintf(infoString, sizeof(infoString), "The audio device with ID %u doesn't support %s the specified property!\n", devid, action);
 
 			break;
 		}
 		default:
-			dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d", result);
+			snprintf(infoString, sizeof(infoString), "Audio Object Error: %d", result);
 			break;
 	}
+
+	return infoString;
+}
+
+void SndCtlPrintInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter) {
+	dprintf(STDERR_FILENO, "%s", SndCtlInfoForError(devid, selector, result, isSetter));
 }
