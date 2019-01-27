@@ -8,7 +8,11 @@
 
 #include "SndCtlAudioUtils.h"
 
-CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID devid) {
+const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeID = CFSTR("id");
+const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName = CFSTR("name");
+
+
+CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID deviceid) {
 	AudioObjectPropertyAddress theAddress = {
 		kAudioObjectPropertyName,
 		kAudioObjectPropertyScopeOutput,
@@ -81,7 +85,7 @@ CFArrayRef SndCtlCopyAudioOutputDevices(void) {
 		if (SndCtlNumberOfChannelsOfDeviceID(devids[i]) > 0) {
 			CFStringRef name = SndCtlCopyNameOfDeviceID(devids[i]);
 
-			CFTypeRef keys[] = { CFSTR("id"), CFSTR("name") };
+			CFTypeRef keys[] = { kSndCtlAudioDeviceAttributeID, kSndCtlAudioDeviceAttributeName };
 			CFNumberRef idNumber = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &devids[i]);
 			CFTypeRef values[] = { idNumber, name };
 

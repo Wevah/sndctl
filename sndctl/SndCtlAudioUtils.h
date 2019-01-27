@@ -16,6 +16,28 @@ CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID devid);
 
 UInt32 SndCtlNumberOfChannelsOfDeviceID(AudioObjectID devid);
 
+/// Key representing an attribute of an audio device.
+typedef CFStringRef SndCtlAudioDeviceAttribute;
+
+/**
+ Key representing the ID of an audio device.
+ @discussion Value is a \c CFNumber wrapping an \c Int32\n.
+ */
+extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeID;
+
+/**
+ Key representing the name of an audio device. Value is a \c CFStringRef\n.
+ @discussion Value is a \c CFStringRef\n.
+ */
+extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
+
+/**
+ Copies an array of audio output devices.
+
+ @return An array of dictionaries represending the valid audio devices.
+ @discussion Valid returned audio devices currently include 2-channel devices.
+ 	Dictionary keys are \c CFSTR("id") and \c CFSTR("name")\n.
+ */
 CFArrayRef SndCtlCopyAudioOutputDevices(void);
 
 AudioObjectID SndCtlDefaultOutputDeviceID(void);
