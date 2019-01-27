@@ -158,7 +158,7 @@ bool SndCtlGetOutputDeviceFloatProperty(AudioObjectID devid, AudioObjectProperty
 		return false;
 
 	if (result != kAudioHardwareNoError)
-		printInfoForError(devid, selector, result, false);
+		SndCtlPrintInfoForError(devid, selector, result, false);
 
 	return result == kAudioHardwareNoError;
 }
@@ -179,7 +179,7 @@ bool SndCtlSetDeviceProperty(AudioObjectID devid, AudioObjectPropertySelector se
 	OSStatus result = AudioObjectSetPropertyData(devid, &propertyAddress, 0, NULL, sizeof(value), &value);
 
 	if (result != kAudioHardwareNoError)
-		printInfoForError(devid, selector, result, true);
+		SndCtlPrintInfoForError(devid, selector, result, true);
 
 	return result == kAudioHardwareNoError;
 }
@@ -264,4 +264,27 @@ AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix) {
 	CFRelease(devices);
 
 	return devid;
+}
+
+void SndCtlPrintInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter) {
+	switch (result) {
+		case kAudioHardwareBadObjectError:
+			dprintf(STDERR_FILENO, "No audio device exists with ID %u!\n", devid);
+			break;
+		case kAudioHardwareUnknownPropertyError:
+		{
+			const char *selectorName = SndCtlNameForDeviceProperty(selector);
+			char *action = isSetter ? "setting" : "getting";
+
+			if (selectorName)
+				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support %s the %s!\n", devid, action, selectorName);
+			else
+				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support %s the specified property!\n", devid, action);
+
+			break;
+		}
+		default:
+			dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d", result);
+			break;
+	}
 }

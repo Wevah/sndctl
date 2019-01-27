@@ -48,6 +48,6 @@ bool SndCtlIncrementBalance(AudioObjectID devid, Float32 delta);
  */
 AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix);
 
-
+void SndCtlPrintInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter);
 
 #endif /* SndCtlAudioUtils_h */

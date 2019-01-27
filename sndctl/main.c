@@ -47,31 +47,6 @@ void listAudioOutputDevices(void) {
 	CFRelease(devices);
 }
 
-
-void printInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter) {
-	switch (result) {
-		case kAudioHardwareBadObjectError:
-			dprintf(STDERR_FILENO, "No audio device exists with ID %u!\n", devid);
-			break;
-		case kAudioHardwareUnknownPropertyError:
-		{
-			const char *selectorName = SndCtlNameForDeviceProperty(selector);
-			char *action = isSetter ? "setting" : "getting";
-
-			if (selectorName)
-				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support %s the %s!\n", devid, action, selectorName);
-			else
-				dprintf(STDERR_FILENO, "The audio device with ID %u doesn't support %s the specified property!\n", devid, action);
-
-			break;
-		}
-		default:
-			dprintf(STDERR_FILENO, "AudioObjectSetPropertyData: %d", result);
-			break;
-	}
-}
-
-
 bool printVolume(AudioObjectID devid) {
 	Float32 volume = SndCtlCurrentVolume(devid);
 
