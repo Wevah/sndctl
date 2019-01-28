@@ -25,7 +25,7 @@ CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID deviceid);
  @return The number of channels.
  @discussion Usually returns \c 2\n.
  */
-UInt32 SndCtlNumberOfChannelsOfDeviceID(AudioObjectID devid);
+UInt32 SndCtlNumberOfChannelsOfDeviceID(AudioObjectID deviceid);
 
 /// Key representing an attribute of an audio device.
 typedef CFStringRef SndCtlAudioDeviceAttribute;
@@ -57,25 +57,25 @@ CFArrayRef SndCtlCopyAudioOutputDevices(void);
  */
 AudioObjectID SndCtlDefaultOutputDeviceID(void);
 
-void SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceID);
+void SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid);
 
 char *SndCtlNameForDeviceProperty(AudioObjectPropertySelector selector);
 
-OSStatus SndCtlGetOutputDeviceFloatProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 *value);
+OSStatus SndCtlGetOutputDeviceFloatProperty(AudioObjectID deviceid, AudioObjectPropertySelector selector, Float32 *value);
 
-OSStatus SndCtlSetDeviceFloatProperty(AudioObjectID devid, AudioObjectPropertySelector selector, Float32 value);
+OSStatus SndCtlSetDeviceFloatProperty(AudioObjectID deviceid, AudioObjectPropertySelector selector, Float32 value);
 
-OSStatus SndCtlSetVolume(AudioObjectID devid, Float32 volume);
+OSStatus SndCtlSetVolume(AudioObjectID deviceid, Float32 volume);
 
-OSStatus SndCtlSetBalance(AudioObjectID devid, Float32 balance);
+OSStatus SndCtlSetBalance(AudioObjectID deviceid, Float32 balance);
 
-OSStatus SndCtlGetCurrentVolume(AudioObjectID devid, Float32 *volume);
+OSStatus SndCtlGetCurrentVolume(AudioObjectID deviceid, Float32 *volume);
 
-OSStatus SndCtlGetCurrentBalance(AudioObjectID devid, Float32 *volume);
+OSStatus SndCtlGetCurrentBalance(AudioObjectID deviceid, Float32 *volume);
 
-OSStatus SndCtlIncrementVolume(AudioObjectID devid, Float32 delta);
+OSStatus SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta);
 
-OSStatus SndCtlIncrementBalance(AudioObjectID devid, Float32 delta);
+OSStatus SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta);
 
 /**
  Returns the ID of the audio device whose prefix matches \c prefix\n.
@@ -85,6 +85,6 @@ OSStatus SndCtlIncrementBalance(AudioObjectID devid, Float32 delta);
  */
 AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix);
 
-void SndCtlPrintInfoForError(AudioObjectID devid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter);
+void SndCtlPrintInfoForError(AudioObjectID deviceid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter);
 
 #endif /* SndCtlAudioUtils_h */

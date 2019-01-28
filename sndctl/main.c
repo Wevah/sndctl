@@ -45,9 +45,9 @@ void listAudioOutputDevices(void) {
 	CFRelease(devices);
 }
 
-bool printVolume(AudioObjectID devid) {
+bool printVolume(AudioObjectID deviceid) {
 	Float32 volume;
-	OSStatus result = SndCtlGetCurrentVolume(devid, &volume);
+	OSStatus result = SndCtlGetCurrentVolume(deviceid, &volume);
 
 	if (result == kAudioHardwareNoError) {
 		printf("Volume: %.2f\n", volume);
@@ -57,9 +57,9 @@ bool printVolume(AudioObjectID devid) {
 	return false;
 }
 
-bool printBalance(AudioObjectID devid) {
+bool printBalance(AudioObjectID deviceid) {
 	Float32 balance;
-	OSStatus result = SndCtlGetCurrentBalance(devid, &balance);
+	OSStatus result = SndCtlGetCurrentBalance(deviceid, &balance);
 
 	if (result == kAudioHardwareNoError) {
 		if (balance == 0.0)
@@ -134,7 +134,7 @@ int main(int argc, const char * argv[]) {
 	};
 
 	int opt;
-	AudioObjectID devid = 0;
+	AudioObjectID deviceid = 0;
 
 	Float32 balance = 0.5;
 	bool shouldSetBalance = false;
@@ -217,11 +217,11 @@ int main(int argc, const char * argv[]) {
 				return 0;
 				break;
 			case 'd':
-				devid = (AudioObjectID)strtoul(optarg, NULL, 10);
+				deviceid = (AudioObjectID)strtoul(optarg, NULL, 10);
 
-				if (devid == 0 && errno == EINVAL) {
-					devid = SndCtlAudioDeviceStartingWithString(optarg);
-					printf("Using device id %u.\n", devid);
+				if (deviceid == 0 && errno == EINVAL) {
+					deviceid = SndCtlAudioDeviceStartingWithString(optarg);
+					printf("Using device id %u.\n", deviceid);
 				}
 
 				break;
@@ -249,22 +249,22 @@ int main(int argc, const char * argv[]) {
 
 	if (shouldSetBalance) {
 		if (balanceIsDelta)
-			SndCtlIncrementBalance(devid, balance);
+			SndCtlIncrementBalance(deviceid, balance);
 		else
-			SndCtlSetBalance(devid, balance);
+			SndCtlSetBalance(deviceid, balance);
 	}
 
 	if (shouldSetVolume) {
 		if (volumeIsDelta)
-			SndCtlIncrementVolume(devid, volume);
+			SndCtlIncrementVolume(deviceid, volume);
 		else
-			SndCtlSetVolume(devid, volume);
+			SndCtlSetVolume(deviceid, volume);
 	}
 
 	if (shouldPrintBalance)
-		printBalance(devid);
+		printBalance(deviceid);
 	if (shouldPrintVolume)
-		printVolume(devid);
+		printVolume(deviceid);
 
 	if (shouldPrintUsage)
 		printUsage();
