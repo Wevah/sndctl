@@ -48,7 +48,7 @@ extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
 
  @return An array of dictionaries represending the valid audio devices.
  @discussion Valid returned audio devices currently include 2-channel devices.
- 	Dictionary keys are \c CFSTR("id") and \c CFSTR("name")\n.
+ 	Dictionary keys are listed under \c SndCtlAudioDeviceAttribute\n.
  */
 CFArrayRef SndCtlCopyAudioOutputDevices(void);
 
