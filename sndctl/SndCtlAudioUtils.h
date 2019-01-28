@@ -17,7 +17,6 @@
  Copy the name of an audio device.
  @param deviceid	The ID of the audio device.
  @return The device's name, or \c NULL if an error occurred.
- The caller is responsible for releasing the returned value.
  */
 CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID deviceid);
 
