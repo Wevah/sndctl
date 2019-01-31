@@ -24,8 +24,25 @@ char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
 	return buf;
 }
 
+void SndCtlPrintError(CFErrorRef error) {
+	char buf[256];
+	CFStringRef localizedDescription = CFErrorCopyDescription(error);
+	CFIndex code = CFErrorGetCode(error);
+	utf8StringCopyFromCFString(localizedDescription, buf, sizeof(buf));
+
+	dprintf(STDERR_FILENO, "%s (%ld)", buf, code);
+	CFRelease(localizedDescription);
+}
+
 void listAudioOutputDevices(void) {
-	CFArrayRef devices = SndCtlCopyAudioOutputDevices();
+	CFErrorRef error;
+	CFArrayRef devices = SndCtlCopyAudioOutputDevices(&error);
+
+	if (!devices) {
+		SndCtlPrintError(error);
+		return;
+	}
+
 	CFIndex count = CFArrayGetCount(devices);
 
 	for (CFIndex i = 0; i < count; ++i) {
@@ -35,7 +52,7 @@ void listAudioOutputDevices(void) {
 		CFNumberGetValue(idval, kCFNumberSInt32Type, &id);
 		CFStringRef name = CFDictionaryGetValue(device, CFSTR("name"));
 
-		char nameBuffer[64];
+		char nameBuffer[256];
 
 		utf8StringCopyFromCFString(name, nameBuffer, sizeof(nameBuffer));
 

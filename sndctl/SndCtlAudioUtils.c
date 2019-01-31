@@ -84,7 +84,7 @@ UInt32 SndCtlNumberOfChannelsOfDeviceID(AudioObjectID deviceid, CFErrorRef *erro
 	return numberOfChannels;
 }
 
-CFArrayRef SndCtlCopyAudioOutputDevices(void) {
+CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error) {
 	UInt32 propsize;
 
 	AudioObjectPropertyAddress theAddress = {
@@ -103,8 +103,12 @@ CFArrayRef SndCtlCopyAudioOutputDevices(void) {
 	AudioObjectID deviceids[nDevices];
 	result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize, deviceids);
 
-	if (result != kAudioHardwareNoError)
-		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", result);
+	if (result != kAudioHardwareNoError) {
+		if (error)
+			*error = SndCtlErrorCreateWithOSStatus(result, CFSTR("Couldn't copy audio output devices"));
+
+		return NULL;
+	}
 
 	CFMutableArrayRef devices = CFArrayCreateMutable(kCFAllocatorDefault, nDevices, &kCFTypeArrayCallBacks);
 
@@ -127,7 +131,7 @@ CFArrayRef SndCtlCopyAudioOutputDevices(void) {
 	return devices;
 }
 
-AudioObjectID SndCtlDefaultOutputDeviceID(void) {
+AudioObjectID SndCtlDefaultOutputDeviceID(CFErrorRef *error) {
 	AudioObjectPropertyAddress defaultOutputDevicePropertyAddress = {
 		kAudioHardwarePropertyDefaultOutputDevice,
 		kAudioObjectPropertyScopeGlobal,
@@ -139,8 +143,10 @@ AudioObjectID SndCtlDefaultOutputDeviceID(void) {
 	OSStatus result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &defaultOutputDevicePropertyAddress, 0, NULL, &deviceIDSize, &defaultOutputDeviceID);
 
 	if (result != kAudioHardwareNoError) {
-		dprintf(STDERR_FILENO, "AudioObjectGetPropertyData: %d\n", result);
-		return 0;
+		if (error) {
+			*error = SndCtlErrorCreateWithOSStatus(result, CFSTR("Couldn't get default output device"));
+		}
+		return kAudioDeviceUnknown;
 	}
 
 	return defaultOutputDeviceID;
@@ -169,9 +175,9 @@ char *SndCtlNameForDeviceProperty(AudioObjectPropertySelector selector) {
 }
 
 static OSStatus SndCtlGetOutputDeviceFloatProperty(AudioObjectID deviceid, AudioObjectPropertySelector selector, Float32 *value) {
-	if (deviceid == 0)
-		deviceid = SndCtlDefaultOutputDeviceID();
-	if (deviceid == 0)
+	if (deviceid == kAudioDeviceUnknown)
+		deviceid = SndCtlDefaultOutputDeviceID(NULL);
+	if (deviceid == kAudioDeviceUnknown)
 		return false;
 
 	AudioObjectPropertyAddress propertyAddress = {
@@ -190,10 +196,10 @@ static OSStatus SndCtlGetOutputDeviceFloatProperty(AudioObjectID deviceid, Audio
 }
 
 static OSStatus SndCtlSetOutputDeviceFloatProperty(AudioObjectID deviceid, AudioObjectPropertySelector selector, Float32 value) {
-	if (deviceid == 0)
-		deviceid = SndCtlDefaultOutputDeviceID();
+	if (deviceid == kAudioDeviceUnknown)
+		deviceid = SndCtlDefaultOutputDeviceID(NULL);
 
-	if (deviceid == 0)
+	if (deviceid == kAudioDeviceUnknown)
 		return false;
 
 	AudioObjectPropertyAddress propertyAddress = {
@@ -245,7 +251,7 @@ OSStatus SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta) {
 }
 
 AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix) {
-	CFArrayRef devices = SndCtlCopyAudioOutputDevices();
+	CFArrayRef devices = SndCtlCopyAudioOutputDevices(NULL);
 	AudioObjectID deviceid = kAudioDeviceUnknown;
 
 	CFIndex count = CFArrayGetCount(devices);

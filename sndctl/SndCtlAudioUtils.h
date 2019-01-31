@@ -52,7 +52,7 @@ extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
  @discussion Valid returned audio devices currently include 2-channel devices.
  	Dictionary keys are listed under \c SndCtlAudioDeviceAttribute\n.
  */
-CFArrayRef SndCtlCopyAudioOutputDevices(void);
+CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error);
 
 OSStatus SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid);
 
