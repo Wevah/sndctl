@@ -161,7 +161,7 @@ int main(int argc, const char * argv[]) {
 				balance = strtof_l(optarg, &endptr, NULL); // Always use the C locale.
 
 				// Balance synonyms.
-				if (balance == 0.0 && endptr == optarg) {
+				if (balance == 0.0 && endptr && endptr == optarg) {
 					if (strlen(endptr) != 0) {
 						switch(endptr[0]) {
 							case 'l':
