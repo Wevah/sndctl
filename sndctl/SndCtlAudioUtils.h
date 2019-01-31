@@ -16,16 +16,19 @@
 /**
  Copy the name of an audio device.
  @param deviceid	The ID of the audio device.
+ @param	error		The error, upon failure.
  @return The device's name, or \c NULL if an error occurred.
  */
-CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID deviceid);
+CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID deviceid, CFErrorRef *error);
 
 /**
  Get the number of channels of an audio device.
- @return The number of channels.
+ @param	deviceid	The ID of the audio device.
+ @param error		The error, upon failure.
+ @return The number of channels. Returns \c 0 and populates \c error on failure.
  @discussion Usually returns \c 2\n.
  */
-UInt32 SndCtlNumberOfChannelsOfDeviceID(AudioObjectID deviceid);
+UInt32 SndCtlNumberOfChannelsOfDeviceID(AudioObjectID deviceid, CFErrorRef *error);
 
 /// Key representing an attribute of an audio device.
 typedef CFStringRef SndCtlAudioDeviceAttribute;
@@ -51,19 +54,7 @@ extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
  */
 CFArrayRef SndCtlCopyAudioOutputDevices(void);
 
-/**
- Get the ID of the current default audio output device.
- @return The ID of the default device.
- */
-AudioObjectID SndCtlDefaultOutputDeviceID(void);
-
-void SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid);
-
-char *SndCtlNameForDeviceProperty(AudioObjectPropertySelector selector);
-
-OSStatus SndCtlGetOutputDeviceFloatProperty(AudioObjectID deviceid, AudioObjectPropertySelector selector, Float32 *value);
-
-OSStatus SndCtlSetDeviceFloatProperty(AudioObjectID deviceid, AudioObjectPropertySelector selector, Float32 value);
+OSStatus SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid);
 
 OSStatus SndCtlSetVolume(AudioObjectID deviceid, Float32 volume);
 
