@@ -26,7 +26,9 @@ char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
 }
 
 char *SndControlStringFromFourCharCode(FourCharCode code) {
-	// Convert from Mac Roman to UTF-8
+	// Most of the Audio Toolbox codes only use ASCII chars,
+	// but just to be safe, convert from Mac Roman to UTF-8
+	// for display.
 	char macstr[5];
 	macstr[0] = (code & 0xff000000) >> 24;
 	macstr[1] = (code & 0x00ff0000) >> 16;
