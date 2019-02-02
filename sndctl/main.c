@@ -13,6 +13,17 @@
 #import <getopt.h>
 #import "SndCtlAudioUtils.h"
 
+char *SndControlStringFromFourCharCode(FourCharCode code) {
+	// Mac Roman
+	static char str[5];
+	str[0] = (code & 0xff000000) >> 24;
+	str[1] = (code & 0x00ff0000) >> 16;
+	str[2] = (code & 0x0000ff00) >> 8;
+	str[3] = code & 0x000000ff;
+	str[4] = '\0';
+	return str;
+}
+
 char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
 	const char *cStr = CFStringGetCStringPtr(string, kCFStringEncodingUTF8);
 
@@ -24,14 +35,17 @@ char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
 	return buf;
 }
 
-void SndCtlPrintError(CFErrorRef error) {
+void SndCtlPrintError(CFErrorRef error, bool release) {
 	char buf[256];
 	CFStringRef localizedDescription = CFErrorCopyDescription(error);
 	CFIndex code = CFErrorGetCode(error);
 	utf8StringCopyFromCFString(localizedDescription, buf, sizeof(buf));
 
-	dprintf(STDERR_FILENO, "%s (%ld)", buf, code);
+	dprintf(STDERR_FILENO, "%s (%s)\n", buf, SndControlStringFromFourCharCode((FourCharCode)code));
 	CFRelease(localizedDescription);
+
+	if (release)
+		CFRelease(error);
 }
 
 void listAudioOutputDevices(void) {
@@ -39,7 +53,7 @@ void listAudioOutputDevices(void) {
 	CFArrayRef devices = SndCtlCopyAudioOutputDevices(&error);
 
 	if (!devices) {
-		SndCtlPrintError(error);
+		SndCtlPrintError(error, true);
 		return;
 	}
 
@@ -63,10 +77,9 @@ void listAudioOutputDevices(void) {
 }
 
 bool printVolume(AudioObjectID deviceid) {
-	Float32 volume;
-	OSStatus result = SndCtlGetCurrentVolume(deviceid, &volume);
+	Float32 volume = SndCtlGetCurrentVolume(deviceid, NULL);
 
-	if (result == kAudioHardwareNoError) {
+	if (!isnan(volume)) {
 		printf("Volume: %.2f\n", volume);
 		return true;
 	}
@@ -75,10 +88,9 @@ bool printVolume(AudioObjectID deviceid) {
 }
 
 bool printBalance(AudioObjectID deviceid) {
-	Float32 balance;
-	OSStatus result = SndCtlGetCurrentBalance(deviceid, &balance);
+	Float32 balance = SndCtlGetCurrentBalance(deviceid, NULL);
 
-	if (result == kAudioHardwareNoError) {
+	if (!isnan(balance)) {
 		if (balance == 0.0)
 			printf("Balance: left\n");
 		else if (balance == 0.5)
@@ -166,6 +178,8 @@ int main(int argc, const char * argv[]) {
 	bool balanceIsDelta = false;
 	bool volumeIsDelta = false;
 
+	CFErrorRef error = NULL;
+
 	while ((opt = getopt_long(argc, (char * const *)argv, "b:Bv:Vd:D:hl", longopts, NULL)) != -1) {
 		switch (opt) {
 			case 'b': {
@@ -237,7 +251,7 @@ int main(int argc, const char * argv[]) {
 				deviceid = (AudioObjectID)strtoul(optarg, NULL, 10);
 
 				if (deviceid == 0 && errno == EINVAL) {
-					deviceid = SndCtlAudioDeviceStartingWithString(optarg);
+					deviceid = SndCtlAudioDeviceStartingWithString(optarg, NULL);
 					printf("Using device id %u.\n", deviceid);
 				}
 
@@ -247,11 +261,11 @@ int main(int argc, const char * argv[]) {
 				AudioObjectID newDefaultId = (AudioObjectID)strtoul(optarg, NULL, 10);
 				
 				if (newDefaultId == 0 && errno == EINVAL) {
-					newDefaultId = SndCtlAudioDeviceStartingWithString(optarg);
+					newDefaultId = SndCtlAudioDeviceStartingWithString(optarg, NULL);
 					printf("Setting default device id to %u.\n", newDefaultId);
 				}
 
-				SndCtlSetDefaultOutputDeviceID(newDefaultId);
+				SndCtlSetDefaultOutputDeviceID(newDefaultId, &error);
 				break;
 			}
 			case 'vers':
@@ -264,24 +278,31 @@ int main(int argc, const char * argv[]) {
 //	argc -= optind;
 //	argv += optind;
 
-	if (shouldSetBalance) {
-		if (balanceIsDelta)
-			SndCtlIncrementBalance(deviceid, balance);
-		else
-			SndCtlSetBalance(deviceid, balance);
+	if (!error) {
+		if (shouldSetBalance) {
+			if (balanceIsDelta)
+				SndCtlIncrementBalance(deviceid, balance, &error);
+			else
+				SndCtlSetBalance(deviceid, balance, &error);
+		}
+
+		if (shouldSetVolume) {
+			if (volumeIsDelta)
+				SndCtlIncrementVolume(deviceid, volume, &error);
+			else
+				SndCtlSetVolume(deviceid, volume, &error);
+		}
+
+		if (shouldPrintBalance)
+			printBalance(deviceid);
+		if (shouldPrintVolume)
+			printVolume(deviceid);
 	}
 
-	if (shouldSetVolume) {
-		if (volumeIsDelta)
-			SndCtlIncrementVolume(deviceid, volume);
-		else
-			SndCtlSetVolume(deviceid, volume);
+	if (error) {
+		SndCtlPrintError(error, true);
+		return 1;
 	}
-
-	if (shouldPrintBalance)
-		printBalance(deviceid);
-	if (shouldPrintVolume)
-		printVolume(deviceid);
 
 	if (shouldPrintUsage)
 		printUsage();

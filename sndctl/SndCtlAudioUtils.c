@@ -12,13 +12,21 @@ const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeID = CFSTR("id");
 const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName = CFSTR("name");
 
 static CFErrorRef SndCtlErrorCreateWithOSStatus(OSStatus status, CFStringRef localizedFailure) {
+	CFStringRef failureReason = NULL;
+
+	switch (status) {
+		case kAudioHardwareBadObjectError:
+		case kAudioHardwareBadDeviceError:
+			failureReason = CFSTR("Device doesn't exist.");
+			break;
+
+		default:
+			break;
+	}
+
 	CFTypeRef keys[] = { kCFErrorLocalizedDescriptionKey };
 	CFTypeRef values[] = { localizedFailure };
-	CFDictionaryRef userInfo = CFDictionaryCreate(kCFAllocatorDefault, keys, values, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-	CFErrorRef error =  CFErrorCreate(kCFAllocatorDefault, kCFErrorDomainOSStatus, status, userInfo);
-	CFRelease(userInfo);
-
-	return error;
+	return CFErrorCreateWithUserInfoKeysAndValues(kCFAllocatorDefault, kCFErrorDomainOSStatus, status, keys, values, 1);
 }
 
 CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID deviceid, CFErrorRef *error) {
@@ -105,7 +113,7 @@ CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error) {
 
 	if (result != kAudioHardwareNoError) {
 		if (error)
-			*error = SndCtlErrorCreateWithOSStatus(result, CFSTR("Couldn't copy audio output devices"));
+			*error = SndCtlErrorCreateWithOSStatus(result, CFSTR("Couldn't copy audio output devices."));
 
 		return NULL;
 	}
@@ -144,7 +152,7 @@ AudioObjectID SndCtlDefaultOutputDeviceID(CFErrorRef *error) {
 
 	if (result != kAudioHardwareNoError) {
 		if (error) {
-			*error = SndCtlErrorCreateWithOSStatus(result, CFSTR("Couldn't get default output device"));
+			*error = SndCtlErrorCreateWithOSStatus(result, CFSTR("Couldn't get default output device."));
 		}
 		return kAudioDeviceUnknown;
 	}
@@ -152,7 +160,7 @@ AudioObjectID SndCtlDefaultOutputDeviceID(CFErrorRef *error) {
 	return defaultOutputDeviceID;
 }
 
-OSStatus SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid) {
+bool SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid, CFErrorRef *error) {
 	AudioObjectPropertyAddress defaultOutputDevicePropertyAddress = {
 		kAudioHardwarePropertyDefaultOutputDevice,
 		kAudioObjectPropertyScopeGlobal,
@@ -162,7 +170,15 @@ OSStatus SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid) {
 	UInt32 deviceIDSize = sizeof(deviceid);
 	OSStatus result = AudioObjectSetPropertyData(kAudioObjectSystemObject, &defaultOutputDevicePropertyAddress, 0, NULL, deviceIDSize, &deviceid);
 
-	return result;
+	if (result != kAudioHardwareNoError) {
+		if (error) {
+			*error = SndCtlErrorCreateWithOSStatus(result, CFSTR("Couldn't set default output device."));
+		}
+
+		return false;
+	}
+
+	return true;
 }
 
 char *SndCtlNameForDeviceProperty(AudioObjectPropertySelector selector) {
@@ -174,11 +190,11 @@ char *SndCtlNameForDeviceProperty(AudioObjectPropertySelector selector) {
 	return NULL;
 }
 
-static OSStatus SndCtlGetOutputDeviceFloatProperty(AudioObjectID deviceid, AudioObjectPropertySelector selector, Float32 *value) {
+static Float32 SndCtlGetOutputDeviceFloatProperty(AudioObjectID deviceid, AudioObjectPropertySelector selector, CFErrorRef *error) {
 	if (deviceid == kAudioDeviceUnknown)
 		deviceid = SndCtlDefaultOutputDeviceID(NULL);
 	if (deviceid == kAudioDeviceUnknown)
-		return false;
+		return NAN;
 
 	AudioObjectPropertyAddress propertyAddress = {
 		selector,
@@ -186,18 +202,26 @@ static OSStatus SndCtlGetOutputDeviceFloatProperty(AudioObjectID deviceid, Audio
 		kAudioObjectPropertyElementMaster
 	};
 
-	UInt32 size = sizeof(*value);
-	OSStatus result = AudioObjectGetPropertyData(deviceid, &propertyAddress, 0, NULL, &size, value);
+	Float32 value;
+	UInt32 size = sizeof(value);
+	OSStatus result = AudioObjectGetPropertyData(deviceid, &propertyAddress, 0, NULL, &size, &value);
 
-	if (size != sizeof(*value))
-		return false;
+	if (result != kAudioHardwareNoError) {
+		if (error) {
+			CFStringRef localizedDescription = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("Couldn't get float property for device ID %d"), deviceid);
+			*error = SndCtlErrorCreateWithOSStatus(result, localizedDescription);
+		}
+	}
 
-	return result;
+	if (size != sizeof(value))
+		return NAN;
+
+	return value;
 }
 
-static OSStatus SndCtlSetOutputDeviceFloatProperty(AudioObjectID deviceid, AudioObjectPropertySelector selector, Float32 value) {
+static bool SndCtlSetOutputDeviceFloatProperty(AudioObjectID deviceid, AudioObjectPropertySelector selector, Float32 value, CFErrorRef *error) {
 	if (deviceid == kAudioDeviceUnknown)
-		deviceid = SndCtlDefaultOutputDeviceID(NULL);
+		deviceid = SndCtlDefaultOutputDeviceID(error);
 
 	if (deviceid == kAudioDeviceUnknown)
 		return false;
@@ -210,49 +234,56 @@ static OSStatus SndCtlSetOutputDeviceFloatProperty(AudioObjectID deviceid, Audio
 
 	OSStatus result = AudioObjectSetPropertyData(deviceid, &propertyAddress, 0, NULL, sizeof(value), &value);
 
-	return result;
-}
-
-OSStatus SndCtlSetVolume(AudioObjectID deviceid, Float32 volume) {
-	return SndCtlSetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, volume);
-}
-
-OSStatus SndCtlSetBalance(AudioObjectID deviceid, Float32 balance) {
-	return SndCtlSetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance);
-}
-
-OSStatus SndCtlGetCurrentVolume(AudioObjectID deviceid, Float32 *volume) {
-	bool result = SndCtlGetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, volume);
-	return result;
-}
-
-OSStatus SndCtlGetCurrentBalance(AudioObjectID deviceid, Float32 *balance) {
-	return SndCtlGetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance);
-}
-
-OSStatus SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta) {
-	Float32 balance = 0.0;
-	OSStatus result = SndCtlGetCurrentBalance(deviceid, &balance);
-
-	if (result == kAudioHardwareNoError)
-		return SndCtlSetBalance(deviceid, balance + delta);
+	if (result != kAudioHardwareNoError) {
+		if (error) {
+			CFStringRef localizedDescription = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("Couldn't set float property for device ID %d"), deviceid);
+			*error = SndCtlErrorCreateWithOSStatus(result, localizedDescription);
+		}
+	}
 
 	return result;
 }
 
-OSStatus SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta) {
-	Float32 volume = 0.0;
-	OSStatus result = SndCtlGetCurrentVolume(deviceid, &volume);
-
-	if (result == kAudioHardwareNoError)
-		return SndCtlSetVolume(deviceid, volume + delta);
-
-	return result;
+bool SndCtlSetVolume(AudioObjectID deviceid, Float32 volume, CFErrorRef *error) {
+	return SndCtlSetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, volume, error);
 }
 
-AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix) {
-	CFArrayRef devices = SndCtlCopyAudioOutputDevices(NULL);
+bool SndCtlSetBalance(AudioObjectID deviceid, Float32 balance, CFErrorRef *error) {
+	return SndCtlSetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance, error);
+}
+
+Float32 SndCtlGetCurrentVolume(AudioObjectID deviceid, CFErrorRef *error) {
+	return SndCtlGetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, error);
+}
+
+Float32 SndCtlGetCurrentBalance(AudioObjectID deviceid, CFErrorRef *error) {
+	return SndCtlGetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, error);
+}
+
+bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *error) {
+	Float32 balance = SndCtlGetCurrentBalance(deviceid, error);
+
+	if (!isnan(balance))
+		return SndCtlSetBalance(deviceid, balance + delta, error);
+
+	return false;
+}
+
+bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *error) {
+	Float32 volume = SndCtlGetCurrentVolume(deviceid, error);
+
+	if (!isnan(volume))
+		return SndCtlSetVolume(deviceid, volume + delta, error);
+
+	return false;
+}
+
+AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix, CFErrorRef *error) {
 	AudioObjectID deviceid = kAudioDeviceUnknown;
+	CFArrayRef devices = SndCtlCopyAudioOutputDevices(error);
+
+	if (!devices)
+		return deviceid;
 
 	CFIndex count = CFArrayGetCount(devices);
 	CFStringRef cfPrefix = CFStringCreateWithCString(kCFAllocatorDefault, prefix, kCFStringEncodingUTF8);
@@ -278,35 +309,4 @@ AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix) {
 	CFRelease(devices);
 
 	return deviceid;
-}
-
-char *SndCtlInfoForError(AudioObjectID deviceid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter) {
-	static char infoString[256];
-
-	switch (result) {
-		case kAudioHardwareBadObjectError:
-			snprintf(infoString, sizeof(infoString), "No audio device exists with ID %u!", deviceid);
-			break;
-		case kAudioHardwareUnknownPropertyError:
-		{
-			const char *selectorName = SndCtlNameForDeviceProperty(selector);
-			char *action = isSetter ? "setting" : "getting";
-
-			if (selectorName)
-				snprintf(infoString, sizeof(infoString), "The audio device with ID %u doesn't support %s the %s!", deviceid, action, selectorName);
-			else
-				snprintf(infoString, sizeof(infoString), "The audio device with ID %u doesn't support %s the specified property!", deviceid, action);
-
-			break;
-		}
-		default:
-			snprintf(infoString, sizeof(infoString), "Audio Object Error: %d", result);
-			break;
-	}
-
-	return infoString;
-}
-
-void SndCtlPrintInfoForError(AudioObjectID deviceid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter) {
-	dprintf(STDERR_FILENO, "%s\n", SndCtlInfoForError(deviceid, selector, result, isSetter));
 }

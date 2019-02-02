@@ -54,19 +54,19 @@ extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
  */
 CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error);
 
-OSStatus SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid);
+bool SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid, CFErrorRef *error);
 
-OSStatus SndCtlSetVolume(AudioObjectID deviceid, Float32 volume);
+bool SndCtlSetVolume(AudioObjectID deviceid, Float32 volume, CFErrorRef *error);
 
-OSStatus SndCtlSetBalance(AudioObjectID deviceid, Float32 balance);
+bool SndCtlSetBalance(AudioObjectID deviceid, Float32 balance, CFErrorRef *error);
 
-OSStatus SndCtlGetCurrentVolume(AudioObjectID deviceid, Float32 *volume);
+Float32 SndCtlGetCurrentVolume(AudioObjectID deviceid, CFErrorRef *error);
 
-OSStatus SndCtlGetCurrentBalance(AudioObjectID deviceid, Float32 *volume);
+Float32 SndCtlGetCurrentBalance(AudioObjectID deviceid, CFErrorRef *error);
 
-OSStatus SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta);
+bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *error);
 
-OSStatus SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta);
+bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *error);
 
 /**
  Returns the ID of the audio device whose prefix matches \c prefix\n.
@@ -74,8 +74,6 @@ OSStatus SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta);
  @param prefix The prefix to match, case-insensitively.
  @return The matched audio device ID, or kAudioDeviceUnknown the prefix does not match exactly one device name.
  */
-AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix);
-
-void SndCtlPrintInfoForError(AudioObjectID deviceid, AudioObjectPropertySelector selector, OSStatus result, bool isSetter);
+AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix, CFErrorRef *error);
 
 #endif /* SndCtlAudioUtils_h */
