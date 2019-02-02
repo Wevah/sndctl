@@ -35,6 +35,8 @@ char *SndControlStringFromFourCharCode(FourCharCode code) {
 	macstr[4] = '\0';
 
 	iconv_t converter = iconv_open("UTF-8", "MACINTOSH");
+
+	// outstr is static so we can just return and the caller doesn't have to free it.
 	static char outstr[16];
 	char *inbuf = (char *)macstr;
 	char *outbuf = (char *)outstr;
