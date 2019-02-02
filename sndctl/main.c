@@ -11,18 +11,8 @@
 
 #import <xlocale.h>
 #import <getopt.h>
+#import <iconv.h>
 #import "SndCtlAudioUtils.h"
-
-char *SndControlStringFromFourCharCode(FourCharCode code) {
-	// Mac Roman
-	static char str[5];
-	str[0] = (code & 0xff000000) >> 24;
-	str[1] = (code & 0x00ff0000) >> 16;
-	str[2] = (code & 0x0000ff00) >> 8;
-	str[3] = code & 0x000000ff;
-	str[4] = '\0';
-	return str;
-}
 
 char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
 	const char *cStr = CFStringGetCStringPtr(string, kCFStringEncodingUTF8);
@@ -33,6 +23,31 @@ char *utf8StringCopyFromCFString(CFStringRef string, char *buf, size_t buflen) {
 		strlcpy(buf, cStr, buflen);
 
 	return buf;
+}
+
+char *SndControlStringFromFourCharCode(FourCharCode code) {
+	// Convert from Mac Roman to UTF-8
+	char macstr[5];
+	macstr[0] = (code & 0xff000000) >> 24;
+	macstr[1] = (code & 0x00ff0000) >> 16;
+	macstr[2] = (code & 0x0000ff00) >> 8;
+	macstr[3] = code & 0x000000ff;
+	macstr[4] = '\0';
+
+	iconv_t converter = iconv_open("UTF-8", "MACINTOSH");
+	static char outstr[16];
+	char *inbuf = (char *)macstr;
+	char *outbuf = (char *)outstr;
+	size_t insize = sizeof(macstr);
+	size_t outsize = sizeof(outstr);
+	size_t result = iconv(converter, &inbuf, &insize, &outbuf, &outsize);
+
+	if (result < 0)
+		dprintf(STDERR_FILENO, "iconv error: %d\n", errno);
+
+	iconv_close(converter);
+
+	return outstr;
 }
 
 void SndCtlPrintError(CFErrorRef error, bool release) {

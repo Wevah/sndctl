@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--printvolume"
+            argument = "-d 255 -b .5"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
