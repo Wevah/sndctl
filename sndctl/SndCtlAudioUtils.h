@@ -25,12 +25,12 @@ CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID deviceid, CFErrorRef *error);
  Get the number of channels of an audio device.
  @param	deviceid	The ID of the audio device.
  @param error		The error, upon failure.
- @return The number of channels. Returns \c 0 and populates \c error on failure.
+ @return The number of channels. Returns \c 0 and sets \c error on failure.
  @discussion Usually returns \c 2\n.
  */
 UInt32 SndCtlNumberOfChannelsOfDeviceID(AudioObjectID deviceid, CFErrorRef *error);
 
-/// Key representing an attribute of an audio device.
+/// Dictionary key representing an attribute of an audio device.
 typedef CFStringRef SndCtlAudioDeviceAttribute;
 
 /**
@@ -48,7 +48,9 @@ extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
 /**
  Copies an array of audio output devices.
 
- @return An array of dictionaries represending the valid audio devices.
+ @param error	An optional \c CFErrorRef to be set if the function fails.
+ @return An array of dictionaries represending the valid audio devices. Returns \c NULL
+ 	and sets \c error on failure.
  @discussion Valid returned audio devices currently include 2-channel devices.
  	Dictionary keys are listed under \c SndCtlAudioDeviceAttribute\n.
  */
@@ -72,7 +74,7 @@ bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *e
  Returns the ID of the audio device whose prefix matches \c prefix\n.
 
  @param prefix The prefix to match, case-insensitively.
- @return The matched audio device ID, or kAudioDeviceUnknown the prefix does not match exactly one device name.
+ @return The matched audio device ID, or \c kAudioDeviceUnknown the prefix does not match exactly one device name.
  */
 AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix, CFErrorRef *error);
 
