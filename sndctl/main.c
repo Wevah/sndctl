@@ -96,7 +96,7 @@ void listAudioOutputDevices(void) {
 }
 
 bool printVolume(AudioObjectID deviceid) {
-	Float32 volume = SndCtlGetCurrentVolume(deviceid, NULL);
+	Float32 volume = SndCtlGetVolume(deviceid, NULL);
 
 	if (!isnan(volume)) {
 		printf("Volume: %.2f\n", volume);
@@ -107,7 +107,7 @@ bool printVolume(AudioObjectID deviceid) {
 }
 
 bool printBalance(AudioObjectID deviceid) {
-	Float32 balance = SndCtlGetCurrentBalance(deviceid, NULL);
+	Float32 balance = SndCtlGetBalance(deviceid, NULL);
 
 	if (!isnan(balance)) {
 		if (balance == 0.0)

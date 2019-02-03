@@ -62,9 +62,9 @@ bool SndCtlSetVolume(AudioObjectID deviceid, Float32 volume, CFErrorRef *error);
 
 bool SndCtlSetBalance(AudioObjectID deviceid, Float32 balance, CFErrorRef *error);
 
-Float32 SndCtlGetCurrentVolume(AudioObjectID deviceid, CFErrorRef *error);
+Float32 SndCtlGetVolume(AudioObjectID deviceid, CFErrorRef *error);
 
-Float32 SndCtlGetCurrentBalance(AudioObjectID deviceid, CFErrorRef *error);
+Float32 SndCtlGetBalance(AudioObjectID deviceid, CFErrorRef *error);
 
 bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *error);
 

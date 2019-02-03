@@ -252,16 +252,16 @@ bool SndCtlSetBalance(AudioObjectID deviceid, Float32 balance, CFErrorRef *error
 	return SndCtlSetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance, error);
 }
 
-Float32 SndCtlGetCurrentVolume(AudioObjectID deviceid, CFErrorRef *error) {
+Float32 SndCtlGetVolume(AudioObjectID deviceid, CFErrorRef *error) {
 	return SndCtlGetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, error);
 }
 
-Float32 SndCtlGetCurrentBalance(AudioObjectID deviceid, CFErrorRef *error) {
+Float32 SndCtlGetBalance(AudioObjectID deviceid, CFErrorRef *error) {
 	return SndCtlGetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, error);
 }
 
 bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *error) {
-	Float32 balance = SndCtlGetCurrentBalance(deviceid, error);
+	Float32 balance = SndCtlGetBalance(deviceid, error);
 
 	if (!isnan(balance))
 		return SndCtlSetBalance(deviceid, balance + delta, error);
@@ -270,7 +270,7 @@ bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *e
 }
 
 bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *error) {
-	Float32 volume = SndCtlGetCurrentVolume(deviceid, error);
+	Float32 volume = SndCtlGetVolume(deviceid, error);
 
 	if (!isnan(volume))
 		return SndCtlSetVolume(deviceid, volume + delta, error);
