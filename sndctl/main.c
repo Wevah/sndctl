@@ -162,8 +162,54 @@ void printHelp(void) {
 		 );
 }
 
-static bool isDelta(char *str) {
+static inline bool isDelta(char *str) {
 	return str && strlen(str) > 1 && (str[0] == '+' || str[0] == '-');
+}
+
+bool SndCtlHandleDevicePrefixAndPrintErrors(const char *prefix, AudioDeviceID *deviceid) {
+	CFErrorRef error;
+	CFArrayRef matchedDevices = SndCtlCopyAudioDevicesStartingWithString(prefix, &error);
+
+	if (!matchedDevices) {
+		SndCtlPrintError(error, true);
+		return false;
+	}
+
+	*deviceid = kAudioDeviceUnknown;
+	CFIndex count = CFArrayGetCount(matchedDevices);
+
+	switch (count) {
+		case 0:
+			dprintf(STDERR_FILENO, "'%s' didn't match any devices.\n", prefix);
+			CFRelease(matchedDevices);
+			return false;
+			break;
+		case 1: {
+			CFDictionaryRef device = CFArrayGetValueAtIndex(matchedDevices, 0);
+			CFNumberRef deviceIdRef = CFDictionaryGetValue(device, kSndCtlAudioDeviceAttributeID);
+			CFNumberGetValue(deviceIdRef, kCFNumberSInt32Type, deviceid);
+			return true;
+			break;
+		}
+		default:
+			dprintf(STDERR_FILENO, "'%s' matched more than one device:\n", prefix);
+
+			for (CFIndex i = 0; i < count; ++i) {
+				AudioDeviceID iteratedDeviceID;
+				CFDictionaryRef device = CFArrayGetValueAtIndex(matchedDevices, 0);
+				CFNumberRef deviceIdRef = CFDictionaryGetValue(device, kSndCtlAudioDeviceAttributeID);
+				CFNumberGetValue(deviceIdRef, kCFNumberSInt32Type, &iteratedDeviceID);
+
+				CFStringRef nameRef = CFDictionaryGetValue(device, kSndCtlAudioDeviceAttributeName);
+				char nameStr[256];
+				utf8StringCopyFromCFString(nameRef, nameStr, sizeof(nameStr));
+
+				dprintf(STDERR_FILENO, "  %s (%u)\n", nameStr, iteratedDeviceID);
+			}
+			break;
+	}
+
+	return false;
 }
 
 int main(int argc, const char * argv[]) {
@@ -270,8 +316,10 @@ int main(int argc, const char * argv[]) {
 				deviceid = (AudioObjectID)strtoul(optarg, NULL, 10);
 
 				if (deviceid == 0 && errno == EINVAL) {
-					deviceid = SndCtlAudioDeviceStartingWithString(optarg, NULL);
-					printf("Using device id %u.\n", deviceid);
+					if (SndCtlHandleDevicePrefixAndPrintErrors(optarg, &deviceid))
+						printf("Using device id %u.\n", deviceid);
+					else
+						return 1;
 				}
 
 				break;
@@ -280,10 +328,11 @@ int main(int argc, const char * argv[]) {
 				AudioObjectID newDefaultId = (AudioObjectID)strtoul(optarg, NULL, 10);
 				
 				if (newDefaultId == 0 && errno == EINVAL) {
-					newDefaultId = SndCtlAudioDeviceStartingWithString(optarg, NULL);
-					printf("Setting default device id to %u.\n", newDefaultId);
+					if (!SndCtlHandleDevicePrefixAndPrintErrors(optarg, &newDefaultId))
+						return 1;
 				}
 
+				printf("Setting default device id to %u.\n", newDefaultId);
 				SndCtlSetDefaultOutputDeviceID(newDefaultId, &error);
 				break;
 			}

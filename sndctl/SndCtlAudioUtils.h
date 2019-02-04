@@ -78,4 +78,6 @@ bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *e
  */
 AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix, CFErrorRef *error);
 
+CFArrayRef SndCtlCopyAudioDevicesStartingWithString(const char *prefix, CFErrorRef *error);
+
 #endif /* SndCtlAudioUtils_h */

@@ -104,8 +104,12 @@ CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error) {
 	OSStatus result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize);
 
 	// FIXME: Return a CFErrorRef and don't print from this.
-	if (result != kAudioHardwareNoError)
-		dprintf(STDERR_FILENO, "AudioObjectGetPropertyDataSize: %d\n", result);
+	if (result != kAudioHardwareNoError) {
+		if (error)
+			*error = SndCtlErrorCreateWithOSStatus(result, CFSTR("Couldn't copy audio output devices."));
+
+		return NULL;
+	}
 
 	int nDevices = propsize / sizeof(AudioObjectID);
 	AudioObjectID deviceids[nDevices];
@@ -282,8 +286,10 @@ AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix, CFErrorRef *erro
 	AudioObjectID deviceid = kAudioDeviceUnknown;
 	CFArrayRef devices = SndCtlCopyAudioOutputDevices(error);
 
-	if (!devices)
+	if (!devices) {
+		CFRelease(devices);
 		return deviceid;
+	}
 
 	CFIndex count = CFArrayGetCount(devices);
 	CFStringRef cfPrefix = CFStringCreateWithCString(kCFAllocatorDefault, prefix, kCFStringEncodingUTF8);
@@ -309,4 +315,33 @@ AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix, CFErrorRef *erro
 	CFRelease(devices);
 
 	return deviceid;
+}
+
+CFArrayRef SndCtlCopyAudioDevicesStartingWithString(const char *prefix, CFErrorRef *error) {
+	CFArrayRef devices = SndCtlCopyAudioOutputDevices(error);
+
+	if (!devices) {
+		CFRelease(devices);
+		return NULL;
+	}
+
+	CFIndex count = CFArrayGetCount(devices);
+	CFMutableArrayRef matchedDevices = CFArrayCreateMutable(kCFAllocatorDefault, count, &kCFTypeArrayCallBacks);
+
+	CFStringRef cfPrefix = CFStringCreateWithCString(kCFAllocatorDefault, prefix, kCFStringEncodingUTF8);
+
+	for (CFIndex i = 0; i < count; ++i) {
+		CFDictionaryRef device = CFArrayGetValueAtIndex(devices, i);
+		CFStringRef name = CFDictionaryGetValue(device, CFSTR("name"));
+
+		CFRange range = CFStringFind(name, cfPrefix, kCFCompareAnchored | kCFCompareCaseInsensitive);
+
+		if (range.location != kCFNotFound)
+			CFArrayAppendValue(matchedDevices, device);
+	}
+
+	CFRelease(cfPrefix);
+	CFRelease(devices);
+
+	return matchedDevices;
 }
