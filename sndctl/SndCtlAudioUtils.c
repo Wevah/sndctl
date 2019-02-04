@@ -282,41 +282,6 @@ bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *er
 	return false;
 }
 
-AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix, CFErrorRef *error) {
-	AudioObjectID deviceid = kAudioDeviceUnknown;
-	CFArrayRef devices = SndCtlCopyAudioOutputDevices(error);
-
-	if (!devices) {
-		CFRelease(devices);
-		return deviceid;
-	}
-
-	CFIndex count = CFArrayGetCount(devices);
-	CFStringRef cfPrefix = CFStringCreateWithCString(kCFAllocatorDefault, prefix, kCFStringEncodingUTF8);
-
-	for (CFIndex i = 0; i < count; ++i) {
-		CFDictionaryRef device = CFArrayGetValueAtIndex(devices, i);
-		CFStringRef name = CFDictionaryGetValue(device, CFSTR("name"));
-
-		CFRange range = CFStringFind(name, cfPrefix, kCFCompareAnchored | kCFCompareCaseInsensitive);
-
-		if (range.location != kCFNotFound) {
-			if (deviceid == kAudioDeviceUnknown) {
-				CFNumberRef deviceidnum = CFDictionaryGetValue(device, CFSTR("id"));
-				CFNumberGetValue(deviceidnum, kCFNumberIntType, &deviceid);
-			} else {
-				deviceid = kAudioDeviceUnknown;
-				break;
-			}
-		}
-	}
-
-	CFRelease(cfPrefix);
-	CFRelease(devices);
-
-	return deviceid;
-}
-
 CFArrayRef SndCtlCopyAudioDevicesStartingWithString(const char *prefix, CFErrorRef *error) {
 	CFArrayRef devices = SndCtlCopyAudioOutputDevices(error);
 

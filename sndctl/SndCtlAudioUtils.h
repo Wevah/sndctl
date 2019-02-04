@@ -71,13 +71,11 @@ bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *er
 bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *error);
 
 /**
- Returns the ID of the audio device whose prefix matches \c prefix\n.
+ Returns an array of audio devices whose name matches \c prefix\n.
 
  @param prefix The prefix to match, case-insensitively.
  @return The matched audio device ID, or \c kAudioDeviceUnknown the prefix does not match exactly one device name.
  */
-AudioObjectID SndCtlAudioDeviceStartingWithString(char *prefix, CFErrorRef *error);
-
 CFArrayRef SndCtlCopyAudioDevicesStartingWithString(const char *prefix, CFErrorRef *error);
 
 #endif /* SndCtlAudioUtils_h */
