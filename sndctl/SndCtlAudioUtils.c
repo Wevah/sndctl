@@ -282,7 +282,7 @@ bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *er
 	return false;
 }
 
-CFArrayRef SndCtlCopyAudioDevicesStartingWithString(const char *prefix, CFErrorRef *error) {
+CFArrayRef SndCtlCopyAudioDevicesMatchingString(const char *stringToMatch, CFErrorRef *error) {
 	CFArrayRef devices = SndCtlCopyAudioOutputDevices(error);
 
 	if (!devices) {
@@ -293,19 +293,19 @@ CFArrayRef SndCtlCopyAudioDevicesStartingWithString(const char *prefix, CFErrorR
 	CFIndex count = CFArrayGetCount(devices);
 	CFMutableArrayRef matchedDevices = CFArrayCreateMutable(kCFAllocatorDefault, count, &kCFTypeArrayCallBacks);
 
-	CFStringRef cfPrefix = CFStringCreateWithCString(kCFAllocatorDefault, prefix, kCFStringEncodingUTF8);
+	CFStringRef cfStr = CFStringCreateWithCString(kCFAllocatorDefault, stringToMatch, kCFStringEncodingUTF8);
 
 	for (CFIndex i = 0; i < count; ++i) {
 		CFDictionaryRef device = CFArrayGetValueAtIndex(devices, i);
 		CFStringRef name = CFDictionaryGetValue(device, CFSTR("name"));
 
-		CFRange range = CFStringFind(name, cfPrefix, kCFCompareAnchored | kCFCompareCaseInsensitive);
+		CFRange range = CFStringFind(name, cfStr, kCFCompareCaseInsensitive);
 
 		if (range.location != kCFNotFound)
 			CFArrayAppendValue(matchedDevices, device);
 	}
 
-	CFRelease(cfPrefix);
+	CFRelease(cfStr);
 	CFRelease(devices);
 
 	return matchedDevices;
