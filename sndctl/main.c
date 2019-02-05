@@ -205,6 +205,7 @@ void printHelp(void) {
 		 "  -V, --printvolume          Display the current volume.\n"
 		 "  -d, --device=<device>      Modify the specified device instead of the default output device.\n"
 		 "  -D, --default=<device>     Set the default audio device.\n"
+		 "      --visual               Display volume and/or balance as an ASCII slider."
 		 "  -l, --list                 List available output devices.\n"
 		 "  -h, --help                 Display this help.\n"
 		 "  -V, --version              Display version information.\n"
