@@ -60,37 +60,59 @@ CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error);
  Sets the default audio output device.
  @param	deviceid	The ID of the output device to set as the default.
  @param	error		An error on failure.
- @return	Whether setting the default device was successful.
+ @return			Whether setting the default device was successful.
  */
 bool SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid, CFErrorRef *error);
 
 /**
  Sets the volume of a device.
+ @param	deviceid	The ID of the device.
+ @param volume		The volume to set, from 0.0 to 1.0.
+ @param	error		An error on failure.
+ @return			Whether setting the volume was successful.
  */
 bool SndCtlSetVolume(AudioObjectID deviceid, Float32 volume, CFErrorRef *error);
 
 /**
  Sets the balance of a device.
- */
+ @param	deviceid	The ID of the device.
+ @param balance		The balance to set, from 0.0 (left) to 1.0 (right).
+ @param	error		An error on failure.
+ @return			Whether setting the balance was successful.
+*/
 bool SndCtlSetBalance(AudioObjectID deviceid, Float32 balance, CFErrorRef *error);
 
 /**
  Gets the volume of a device.
+ @param	deviceid	The ID of the device.
+ @param	error		An error on failure.
+ @return			The volume of the device, from 0.0 to 1.0.
  */
 Float32 SndCtlGetVolume(AudioObjectID deviceid, CFErrorRef *error);
 
 /**
  Gets the balance of a device.
- */
+ @param	deviceid	The ID of the device.
+ @param	error		An error on failure.
+ @return			The balance of the device, from 0.0 (left) to 1.0 (right).
+*/
 Float32 SndCtlGetBalance(AudioObjectID deviceid, CFErrorRef *error);
 
 /**
  Increments the volume of a device.
+ @param	deviceid	The ID of the device.
+ @param	delta		The amount by which to increment or decrement the volume.
+ @param	error		An error on failure.
+ @return			Whether incrementing the volume was successful.
  */
 bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *error);
 
 /**
- Increments the volume of a device.
+ Increments the balance of a device.
+ @param	deviceid	The ID of the device.
+ @param	delta		The amount by which to increment or decrement the balance.
+ @param	error		An error on failure.
+ @return			Whether incrementing the volume was balance.
  */
 bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *error);
 
