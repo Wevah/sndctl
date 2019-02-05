@@ -95,29 +95,78 @@ void listAudioOutputDevices(void) {
 	CFRelease(devices);
 }
 
-bool printVolume(AudioObjectID deviceid) {
+void SndCtlPrintSlider(size_t barWidth, Float32 position, const char *minString, const char *maxString) {
+	if (barWidth < 5)
+		return;
+
+	static const char *knobString = "#";
+	static const char *barFill = "=";
+	static const char *barLeftCap = "[";
+	static const char *barRightCap = "]";
+
+	if (!minString)
+		minString = "";
+	if (!maxString)
+		maxString = "";
+
+	size_t fillWidth = barWidth - 2;
+
+	char barString[256];
+	size_t barFillLength = strlen(barFill);
+
+	if (barWidth > 200) {
+		dprintf(STDERR_FILENO, "barWidth too long.\n");
+		return;
+	}
+
+	size_t knobLocation = round(position * (fillWidth - 1));
+	size_t i = 0;
+
+	while (i < fillWidth) {
+		if (i == knobLocation) {
+			memcpy(barString + i, knobString, strlen(knobString));
+			i += strlen(knobString);
+		} else {
+			memcpy(barString + i, barFill, barFillLength);
+			i += barFillLength;
+		}
+	}
+
+	barString[i] = '\0';
+
+	printf("\033[1m%s\033[0m%s%s%s\033[1m%s\033[0m\n", minString, barLeftCap, barString, barRightCap, maxString);
+}
+
+bool printVolume(AudioObjectID deviceid, bool printAsSlider) {
 	Float32 volume = SndCtlGetVolume(deviceid, NULL);
 
 	if (!isnan(volume)) {
-		printf("Volume: %.2f\n", volume);
+		if (printAsSlider)
+			SndCtlPrintSlider(21, volume, "- ", " +");
+		else
+			printf("Volume: %.2f\n", volume);
 		return true;
 	}
 
 	return false;
 }
 
-bool printBalance(AudioObjectID deviceid) {
+bool printBalance(AudioObjectID deviceid, bool printAsSlider) {
 	Float32 balance = SndCtlGetBalance(deviceid, NULL);
 
 	if (!isnan(balance)) {
-		if (balance == 0.0)
-			printf("Balance: left\n");
-		else if (balance == 0.5)
-			printf("Balance: center\n");
-		else if (balance == 1.0)
-			printf("Balance: right\n");
-		else
-			printf("Balance: %.2f\n", balance);
+		if (printAsSlider) {
+			SndCtlPrintSlider(21, balance, "L ", " R");
+		} else {
+			if (balance == 0.0)
+				printf("Balance: left\n");
+			else if (balance == 0.5)
+				printf("Balance: center\n");
+			else if (balance == 1.0)
+				printf("Balance: right\n");
+			else
+				printf("Balance: %.2f\n", balance);
+		}
 
 		return true;
 	}
@@ -221,6 +270,8 @@ int main(int argc, const char * argv[]) {
 		{ "default",		required_argument,	NULL,	'D' },
 		{ "device",			required_argument,	NULL,	'd' },
 
+		{ "visual", 		no_argument,		NULL,	'visu' },
+
 		{ "help",			no_argument,		NULL,	'h' },
 		{ "list",			no_argument,		NULL,	'l' },
 		{ "version",		no_argument,		NULL,	'vers' },
@@ -244,6 +295,8 @@ int main(int argc, const char * argv[]) {
 	bool volumeIsDelta = false;
 
 	CFErrorRef error = NULL;
+
+	bool printAsSlider = false;
 
 	while ((opt = getopt_long(argc, (char * const *)argv, "b:Bv:Vd:D:hl", longopts, NULL)) != -1) {
 		switch (opt) {
@@ -340,6 +393,9 @@ int main(int argc, const char * argv[]) {
 				printVersion();
 				return 0;
 				break;
+			case 'visu':
+				printAsSlider = true;
+				break;
 		}
 	}
 
@@ -362,9 +418,9 @@ int main(int argc, const char * argv[]) {
 		}
 
 		if (shouldPrintBalance)
-			printBalance(deviceid);
+			printBalance(deviceid, printAsSlider);
 		if (shouldPrintVolume)
-			printVolume(deviceid);
+			printVolume(deviceid, printAsSlider);
 	}
 
 	if (error) {
