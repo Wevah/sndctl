@@ -56,18 +56,42 @@ extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
  */
 CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error);
 
+/**
+ Sets the default audio output device.
+ @param	deviceid	The ID of the output device to set as the default.
+ @param	error		An error on failure.
+ @return	Whether setting the default device was successful.
+ */
 bool SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid, CFErrorRef *error);
 
+/**
+ Sets the volume of a device.
+ */
 bool SndCtlSetVolume(AudioObjectID deviceid, Float32 volume, CFErrorRef *error);
 
+/**
+ Sets the balance of a device.
+ */
 bool SndCtlSetBalance(AudioObjectID deviceid, Float32 balance, CFErrorRef *error);
 
+/**
+ Gets the volume of a device.
+ */
 Float32 SndCtlGetVolume(AudioObjectID deviceid, CFErrorRef *error);
 
+/**
+ Gets the balance of a device.
+ */
 Float32 SndCtlGetBalance(AudioObjectID deviceid, CFErrorRef *error);
 
+/**
+ Increments the volume of a device.
+ */
 bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *error);
 
+/**
+ Increments the volume of a device.
+ */
 bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *error);
 
 /**
