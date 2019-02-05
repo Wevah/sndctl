@@ -47,7 +47,6 @@ extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
 
 /**
  Copies an array of audio output devices.
-
  @param error	An optional \c CFErrorRef to be set if the function fails.
  @return An array of dictionaries represending the valid audio devices. Returns \c NULL
  	and sets \c error on failure.
@@ -118,7 +117,6 @@ bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *e
 
 /**
  Returns an array of audio devices whose name matches a string.
-
  @param		stringToMatch	The string to match, case-insensitively.
  @param		error			An error on failure.
  @return	An array of dictionaries representing the matched audio devices.
