@@ -40,7 +40,7 @@ typedef CFStringRef SndCtlAudioDeviceAttribute;
 extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeID;
 
 /**
- Key representing the name of an audio device. Value is a \c CFStringRef\n.
+ Key representing the name of an audio device.
  @discussion Value is a \c CFStringRef\n.
  */
 extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
@@ -52,7 +52,7 @@ extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
  @return An array of dictionaries represending the valid audio devices. Returns \c NULL
  	and sets \c error on failure.
  @discussion Valid returned audio devices currently include 2-channel devices.
- 	Dictionary keys are listed under \c SndCtlAudioDeviceAttribute\n.
+ 	See \c SndCtlAudioDeviceAttribute for valid keys.
  */
 CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error);
 
@@ -71,7 +71,7 @@ bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *er
 bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *error);
 
 /**
- Returns an array of audio devices whose name matches \c prefix\n.
+ Returns an array of audio devices whose name matches a string.
 
  @param		stringToMatch	The string to match, case-insensitively.
  @param		error			An error on failure.
