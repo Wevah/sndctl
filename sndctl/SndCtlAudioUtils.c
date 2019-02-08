@@ -19,14 +19,23 @@ static CFErrorRef SndCtlErrorCreateWithOSStatus(OSStatus status, CFStringRef loc
 		case kAudioHardwareBadDeviceError:
 			failureReason = CFSTR("Device doesn't exist.");
 			break;
-
+		case kAudioHardwareUnknownPropertyError:
+			failureReason = CFSTR("Device doesn't support the specified property.");
 		default:
 			break;
 	}
 
-	CFTypeRef keys[] = { kCFErrorLocalizedDescriptionKey };
-	CFTypeRef values[] = { localizedFailure };
-	return CFErrorCreateWithUserInfoKeysAndValues(kCFAllocatorDefault, kCFErrorDomainOSStatus, status, keys, values, 1);
+	if (failureReason)
+		localizedFailure = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%@: %@"), localizedFailure, failureReason);
+
+	CFTypeRef keys[] = { kCFErrorLocalizedDescriptionKey, kCFErrorLocalizedFailureReasonKey };
+	CFTypeRef values[] = { localizedFailure, failureReason };
+	CFErrorRef error = CFErrorCreateWithUserInfoKeysAndValues(kCFAllocatorDefault, kCFErrorDomainOSStatus, status, keys, values, failureReason ? 2 : 1);
+
+	if (failureReason)
+		CFRelease(localizedFailure);
+
+	return error;
 }
 
 CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID deviceid, CFErrorRef *error) {
@@ -92,7 +101,8 @@ UInt32 SndCtlNumberOfChannelsOfDeviceID(AudioObjectID deviceid, CFErrorRef *erro
 	return numberOfChannels;
 }
 
-CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error) {
+AudioObjectID *SndCtlGetAudioOutputDeviceIDs(CFErrorRef *error) {
+	static AudioObjectID deviceids[64];
 	UInt32 propsize;
 
 	AudioObjectPropertyAddress theAddress = {
@@ -103,7 +113,6 @@ CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error) {
 
 	OSStatus result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize);
 
-	// FIXME: Return a CFErrorRef and don't print from this.
 	if (result != kAudioHardwareNoError) {
 		if (error)
 			*error = SndCtlErrorCreateWithOSStatus(result, CFSTR("Couldn't copy audio output devices."));
@@ -111,9 +120,12 @@ CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error) {
 		return NULL;
 	}
 
-	int nDevices = propsize / sizeof(AudioObjectID);
-	AudioObjectID deviceids[nDevices];
-	result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize, deviceids);
+	int deviceCount = propsize / sizeof(AudioObjectID);
+	if (deviceCount > 63)
+		return NULL;
+
+	AudioObjectID allDevices[deviceCount];
+	result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &propsize, allDevices);
 
 	if (result != kAudioHardwareNoError) {
 		if (error)
@@ -122,22 +134,36 @@ CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error) {
 		return NULL;
 	}
 
-	CFMutableArrayRef devices = CFArrayCreateMutable(kCFAllocatorDefault, nDevices, &kCFTypeArrayCallBacks);
-
-	for (int i = 0; i < nDevices; ++i) {
-		if (SndCtlNumberOfChannelsOfDeviceID(deviceids[i], NULL) > 0) {
-			CFStringRef name = SndCtlCopyNameOfDeviceID(deviceids[i], NULL);
-
-			CFTypeRef keys[] = { kSndCtlAudioDeviceAttributeID, kSndCtlAudioDeviceAttributeName };
-			CFNumberRef idNumber = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &deviceids[i]);
-			CFTypeRef values[] = { idNumber, name };
-
-			CFDictionaryRef device = CFDictionaryCreate(kCFAllocatorDefault, keys, values, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-			CFArrayAppendValue(devices, device);
-
-			CFRelease(idNumber);
-			CFRelease(name);
+	int j = 0;
+	for (int i = 0; i < deviceCount; ++i) {
+		AudioObjectID deviceid = allDevices[i];
+		if (SndCtlNumberOfChannelsOfDeviceID(deviceid, NULL) > 0) {
+			deviceids[j++] = deviceid;
 		}
+	}
+
+	deviceids[j] = kAudioObjectUnknown;
+
+	return deviceids;
+}
+
+CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error) {
+	AudioObjectID *deviceids = SndCtlGetAudioOutputDeviceIDs(error);
+	CFMutableArrayRef devices = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+	AudioObjectID deviceid = kAudioObjectUnknown;
+
+	while ( (deviceid = *deviceids++) ) {
+		CFStringRef name = SndCtlCopyNameOfDeviceID(deviceid, NULL);
+
+		CFTypeRef keys[] = { kSndCtlAudioDeviceAttributeID, kSndCtlAudioDeviceAttributeName };
+		CFNumberRef idNumber = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &deviceid);
+		CFTypeRef values[] = { idNumber, name };
+
+		CFDictionaryRef device = CFDictionaryCreate(kCFAllocatorDefault, keys, values, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+		CFArrayAppendValue(devices, device);
+
+		CFRelease(idNumber);
+		CFRelease(name);
 	}
 
 	return devices;

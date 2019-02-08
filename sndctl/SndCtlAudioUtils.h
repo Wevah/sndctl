@@ -45,23 +45,16 @@ CFStringRef SndCtlCopyNameOfDeviceID(AudioObjectID deviceid, CFErrorRef *error);
  */
 UInt32 SndCtlNumberOfChannelsOfDeviceID(AudioObjectID deviceid, CFErrorRef *error);
 
-/// Dictionary key representing an attribute of an audio device.
-typedef CFStringRef SndCtlAudioDeviceAttribute;
-
 /**
- Key representing the ID of an audio device.
- @discussion Value is a \c CFNumber wrapping an \c Int32\n.
+ Get the IDs of available output devices.
+ @param error	An error set on failure.
+ @return	A list of \c AudioObjectID\n, terminated by \c kAudioObjectUnknown, or \c NULL on failure.
  */
-extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeID;
+
+AudioObjectID *SndCtlGetAudioOutputDeviceIDs(CFErrorRef *error);
 
 /**
- Key representing the name of an audio device.
- @discussion Value is a \c CFStringRef\n.
- */
-extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
-
-/**
- Copies an array of audio output devices.
+ Copies an array of audio output devices with at least 1 channel.
  @param error	An optional \c CFErrorRef to be set if the function fails.
  @return An array of dictionaries represending the valid audio devices. Returns \c NULL
  	and sets \c error on failure.
@@ -123,9 +116,9 @@ bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *er
 
 /**
  Increments the balance of a device.
- @param	deviceid	The ID of the device.
- @param	delta		The amount by which to increment or decrement the balance.
- @param	error		An error on failure.
+ @param		deviceid	The ID of the device.
+ @param		delta		The amount by which to increment or decrement the balance.
+ @param		error		An error on failure.
  @return			Whether incrementing the volume was balance.
  */
 bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *error);
