@@ -238,6 +238,7 @@ bool SndCtlHandleDeviceMatchingAndPrintErrors(const char *stringToMatch, AudioDe
 			CFDictionaryRef device = CFArrayGetValueAtIndex(matchedDevices, 0);
 			CFNumberRef deviceIdRef = CFDictionaryGetValue(device, kSndCtlAudioDeviceAttributeID);
 			CFNumberGetValue(deviceIdRef, kCFNumberSInt32Type, deviceid);
+			CFRelease(matchedDevices);
 			return true;
 			break;
 		}
@@ -258,6 +259,8 @@ bool SndCtlHandleDeviceMatchingAndPrintErrors(const char *stringToMatch, AudioDe
 			}
 			break;
 	}
+
+	CFRelease(matchedDevices);
 
 	return false;
 }

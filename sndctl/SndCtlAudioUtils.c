@@ -149,6 +149,10 @@ AudioObjectID *SndCtlGetAudioOutputDeviceIDs(CFErrorRef *error) {
 
 CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error) {
 	AudioObjectID *deviceids = SndCtlGetAudioOutputDeviceIDs(error);
+
+	if (!deviceids)
+		return NULL;
+
 	CFMutableArrayRef devices = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
 	AudioObjectID deviceid = kAudioObjectUnknown;
 
@@ -240,6 +244,7 @@ static Float32 SndCtlGetOutputDeviceFloatProperty(AudioObjectID deviceid, AudioO
 		if (error) {
 			CFStringRef localizedDescription = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("Couldn't get float property for device ID %d"), deviceid);
 			*error = SndCtlErrorCreateWithOSStatus(result, localizedDescription);
+			CFRelease(localizedDescription);
 		}
 	}
 
@@ -268,6 +273,7 @@ static bool SndCtlSetOutputDeviceFloatProperty(AudioObjectID deviceid, AudioObje
 		if (error) {
 			CFStringRef localizedDescription = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("Couldn't set float property for device ID %d"), deviceid);
 			*error = SndCtlErrorCreateWithOSStatus(result, localizedDescription);
+			CFRelease(localizedDescription);
 		}
 	}
 
@@ -311,10 +317,8 @@ bool SndCtlIncrementVolume(AudioObjectID deviceid, Float32 delta, CFErrorRef *er
 CFArrayRef SndCtlCopyAudioDevicesMatchingString(const char *stringToMatch, CFErrorRef *error) {
 	CFArrayRef devices = SndCtlCopyAudioOutputDevices(error);
 
-	if (!devices) {
-		CFRelease(devices);
+	if (!devices)
 		return NULL;
-	}
 
 	CFIndex count = CFArrayGetCount(devices);
 	CFMutableArrayRef matchedDevices = CFArrayCreateMutable(kCFAllocatorDefault, count, &kCFTypeArrayCallBacks);
