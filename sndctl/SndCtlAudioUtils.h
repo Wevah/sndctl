@@ -13,6 +13,21 @@
 #include <AudioToolbox/AudioToolbox.h>
 
 
+/// Dictionary key representing an attribute of an audio device.
+typedef CFStringRef SndCtlAudioDeviceAttribute;
+
+/**
+ Key representing the ID of an audio device.
+ @discussion Value is a \c CFNumber wrapping an \c Int32\n.
+ */
+extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeID;
+
+/**
+ Key representing the name of an audio device.
+ @discussion Value is a \c CFStringRef\n.
+ */
+extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
+
 /**
  Copy the name of an audio device.
  @param deviceid	The ID of the audio device.
