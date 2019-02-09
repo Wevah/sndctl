@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleGetInfoString</key>
-	<string>sndctl 1.2 © 2017–2019 Nate Weaver (Wevah)/Derailer</string>
+	<string>sndctl 1.3 © 2017–2019 Nate Weaver (Wevah)/Derailer</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
