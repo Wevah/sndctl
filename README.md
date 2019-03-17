@@ -9,7 +9,8 @@ A small utility for controlling sound output from the command line on macOS.
 <pre class="shell">$ sndctl -v <var>volume</var>
 $ sndctl -b <var>balance</var></pre>
 
-Volume and balance are from `0.0` to `1.0`, translated to volume as min/max, and to balance as left/right. For balance, `l`, `r`, and `c`, are aliases for `0.0`, `0.5`, and `1.0`, respectively.
+Volume and balance are from `0.0` to `1.0`, translated to volume as min/max, and to balance as left/right.  
+For balance, `l`, `r`, and `c`, are aliases for `0.0`, `0.5`, and `1.0`, respectively.
 
 Capitalize `V` or `B` to display the volume or balance.
 
