@@ -18,7 +18,7 @@ Pass `--visual` with `V` and/or `B` to display volume and balance as ASCII slide
 
 (See the man page/help for more options.)
 
-I originally wrote this to easily correct the output balance after rebooting from Boot Camp:
+I originally wrote this to easily correct the output balance after rebooting:
 
 <pre class="shell">$ sndctl -b c</pre>
 
