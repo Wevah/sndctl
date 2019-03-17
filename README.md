@@ -1,5 +1,4 @@
-sndctl
-======
+# sndctl
 
 v1.2 (2019)  
 by Nate Weaver (Wevah)  
@@ -7,14 +6,18 @@ https://derailer.org/
 
 A small utility for controlling sound output from the command line on macOS.
 
-    $ sndctl -v <volume>
-    $ sndctl -b <balance>
+```
+$ sndctl -v <volume>
+$ sndctl -b <balance>
+```
 
 (See the man page/help for more options.)
 
 I originally wrote this to easily correct the output balance after rebooting from Boot Camp:
 
-    $ sndctl -b c
+```
+$ sndctl -b c
+```
 
 ----
 
