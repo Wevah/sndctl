@@ -6,10 +6,8 @@ https://derailer.org/
 
 A small utility for controlling sound output from the command line on macOS.
 
-```shell
-$ sndctl -v <volume>
-$ sndctl -b <balance>
-```
+<pre class="shell">$ sndctl -v <var>volume</var>
+$ sndctl -b <var>balance</var></pre>
 
 Volume and balance are from `0.0` to `1.0`, translated to volume as min/max, and to balance as left/right. For balance, `l`, `r`, and `c`, are aliases for `0.0`, `0.5`, and `1.0`, respectively.
 
@@ -21,9 +19,7 @@ Pass `--visual` with `V` and/or `B` to display volume and balance as ASCII slide
 
 I originally wrote this to easily correct the output balance after rebooting from Boot Camp:
 
-```shell
-$ sndctl -b c
-```
+<pre class="shell">$ sndctl -b c</pre>
 
 ----
 
