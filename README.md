@@ -1,6 +1,6 @@
 # sndctl
 
-v1.2 (2019)  
+v1.2.1 (2019)  
 by Nate Weaver (Wevah)  
 https://derailer.org/
 
