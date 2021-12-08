@@ -216,9 +216,9 @@ bool SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid, CFErrorRef *error) {
 }
 
 char *SndCtlNameForDeviceProperty(AudioObjectPropertySelector selector) {
-	if (selector == kAudioHardwareServiceDeviceProperty_VirtualMasterBalance)
+	if (selector == kAudioHardwareServiceDeviceProperty_VirtualMainBalance)
 		return "balance";
-	else if (selector == kAudioHardwareServiceDeviceProperty_VirtualMasterVolume)
+	else if (selector == kAudioHardwareServiceDeviceProperty_VirtualMainBalance)
 		return "volume";
 
 	return NULL;
@@ -281,19 +281,19 @@ static bool SndCtlSetOutputDeviceFloatProperty(AudioObjectID deviceid, AudioObje
 }
 
 bool SndCtlSetVolume(AudioObjectID deviceid, Float32 volume, CFErrorRef *error) {
-	return SndCtlSetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, volume, error);
+	return SndCtlSetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMainVolume, volume, error);
 }
 
 bool SndCtlSetBalance(AudioObjectID deviceid, Float32 balance, CFErrorRef *error) {
-	return SndCtlSetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, balance, error);
+	return SndCtlSetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMainBalance, balance, error);
 }
 
 Float32 SndCtlGetVolume(AudioObjectID deviceid, CFErrorRef *error) {
-	return SndCtlGetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterVolume, error);
+	return SndCtlGetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMainVolume, error);
 }
 
 Float32 SndCtlGetBalance(AudioObjectID deviceid, CFErrorRef *error) {
-	return SndCtlGetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMasterBalance, error);
+	return SndCtlGetOutputDeviceFloatProperty(deviceid, kAudioHardwareServiceDeviceProperty_VirtualMainBalance, error);
 }
 
 bool SndCtlIncrementBalance(AudioObjectID deviceid, Float32 delta, CFErrorRef *error) {
