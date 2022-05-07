@@ -1,6 +1,6 @@
 # sndctl
 
-v1.2.1 (2019)  
+v1.3 (2022)
 by Nate Weaver (Wevah)  
 https://derailer.org/
 
@@ -24,4 +24,4 @@ I originally wrote this to easily correct the output balance after rebooting:
 
 ----
 
-© 2017-2019 Nate Weaver (Wevah)/Derailer
+© 2017-2022 Nate Weaver (Wevah)/Derailer
