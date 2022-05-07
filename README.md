@@ -22,6 +22,8 @@ I originally wrote this to easily correct the output balance after rebooting:
 
 <pre class="shell">$ sndctl -b c</pre>
 
+Note: Getting/setting the balance on some outputs on Apple Silicon macs doesn't work.
+
 ----
 
 © 2017-2022 Nate Weaver (Wevah)/Derailer
