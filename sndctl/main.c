@@ -137,8 +137,8 @@ void SndCtlPrintSlider(size_t barWidth, Float32 position, const char *minString,
 	printf("\033[1m%s\033[0m%s%s%s\033[1m%s\033[0m\n", minString, barLeftCap, barString, barRightCap, maxString);
 }
 
-bool printVolume(AudioObjectID deviceid, bool printAsSlider) {
-	Float32 volume = SndCtlGetVolume(deviceid, NULL);
+bool printVolume(AudioObjectID deviceid, bool printAsSlider, CFErrorRef *error) {
+	Float32 volume = SndCtlGetVolume(deviceid, error);
 
 	if (!isnan(volume)) {
 		if (printAsSlider)
@@ -151,8 +151,8 @@ bool printVolume(AudioObjectID deviceid, bool printAsSlider) {
 	return false;
 }
 
-bool printBalance(AudioObjectID deviceid, bool printAsSlider) {
-	Float32 balance = SndCtlGetBalance(deviceid, NULL);
+bool printBalance(AudioObjectID deviceid, bool printAsSlider, CFErrorRef *error) {
+	Float32 balance = SndCtlGetBalance(deviceid, error);
 
 	if (!isnan(balance)) {
 		if (printAsSlider) {
@@ -422,9 +422,9 @@ int main(int argc, const char * argv[]) {
 		}
 
 		if (shouldPrintBalance)
-			printBalance(deviceid, printAsSlider);
+			printBalance(deviceid, printAsSlider, &error);
 		if (shouldPrintVolume)
-			printVolume(deviceid, printAsSlider);
+			printVolume(deviceid, printAsSlider, &error);
 	}
 
 	if (error) {
