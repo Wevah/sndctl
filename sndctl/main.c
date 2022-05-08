@@ -99,6 +99,11 @@ void SndCtlPrintSlider(size_t barWidth, Float32 position, const char *minString,
 	if (barWidth < 5)
 		return;
 
+	if (barWidth > 200) {
+		dprintf(STDERR_FILENO, "barWidth too long.\n");
+		return;
+	}
+
 	static const char *knobString = "#";
 	static const char *barFill = "=";
 	static const char *barLeftCap = "[";
@@ -113,11 +118,6 @@ void SndCtlPrintSlider(size_t barWidth, Float32 position, const char *minString,
 
 	char barString[256];
 	size_t barFillLength = strlen(barFill);
-
-	if (barWidth > 200) {
-		dprintf(STDERR_FILENO, "barWidth too long.\n");
-		return;
-	}
 
 	size_t knobLocation = round(position * (fillWidth - 1));
 	size_t i = 0;
