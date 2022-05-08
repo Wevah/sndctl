@@ -104,10 +104,10 @@ void SndCtlPrintSlider(size_t barWidth, Float32 position, const char *minString,
 		return;
 	}
 
-	static const char *knobString = "#";
-	static const char *barFill = "=";
-	static const char *barLeftCap = "[";
-	static const char *barRightCap = "]";
+	static const char * const knobString = "#";
+	static const char * const barFill = "=";
+	static const char * const barLeftCap = "[";
+	static const char * const barRightCap = "]";
 
 	if (!minString)
 		minString = "";
@@ -134,7 +134,10 @@ void SndCtlPrintSlider(size_t barWidth, Float32 position, const char *minString,
 
 	barString[i] = '\0';
 
-	printf("\033[1m%s\033[0m%s%s%s\033[1m%s\033[0m\n", minString, barLeftCap, barString, barRightCap, maxString);
+	static const char * const bold = "\033[1m";
+	static const char * const normal = "\033[0m";
+
+	printf("%s%s%s" "%s%s%s" "%s%s%s\n", bold, minString, normal, barLeftCap, barString, barRightCap, bold, maxString, normal);
 }
 
 bool printVolume(AudioObjectID deviceid, bool printAsSlider, CFErrorRef *error) {
