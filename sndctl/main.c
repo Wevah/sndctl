@@ -109,6 +109,9 @@ void SndCtlPrintSlider(size_t barWidth, Float32 position, const char *minString,
 	static const char * const barLeftCap = "[";
 	static const char * const barRightCap = "]";
 
+	static const char * const bold = "\033[1m";
+	static const char * const normal = "\033[0m";
+
 	if (!minString)
 		minString = "";
 	if (!maxString)
@@ -133,9 +136,6 @@ void SndCtlPrintSlider(size_t barWidth, Float32 position, const char *minString,
 	}
 
 	barString[i] = '\0';
-
-	static const char * const bold = "\033[1m";
-	static const char * const normal = "\033[0m";
 
 	printf("%s%s%s" "%s%s%s" "%s%s%s\n", bold, minString, normal, barLeftCap, barString, barRightCap, bold, maxString, normal);
 }
