@@ -95,6 +95,19 @@ void listAudioOutputDevices(void) {
 	CFRelease(devices);
 }
 
+size_t count_codepoints(const char *str) {
+	size_t count = 0;
+	size_t length = strlen(str);
+
+	// Count bytes that aren't continuation byets; i.e., those that don't match with 0b11xxxxxx.
+	for (int i = 0; i < length; ++i) {
+		if ((str[i] & 0xc0) != 0x80)
+			++count;
+	}
+
+	return count;
+}
+
 void SndCtlPrintSlider(size_t barWidth, Float32 position, const char *minString, const char *maxString) {
 	if (barWidth < 5)
 		return;
@@ -123,19 +136,22 @@ void SndCtlPrintSlider(size_t barWidth, Float32 position, const char *minString,
 	size_t barFillLength = strlen(barFill);
 
 	size_t knobLocation = round(position * (fillWidth - 1));
-	size_t i = 0;
+	size_t bytelocation = 0;
+	size_t characterlocation = 0;
 
-	while (i < fillWidth) {
-		if (i == knobLocation) {
-			memcpy(barString + i, knobString, strlen(knobString));
-			i += strlen(knobString);
+	while (characterlocation < fillWidth) {
+		if (characterlocation == knobLocation) {
+			memcpy(barString + bytelocation, knobString, strlen(knobString));
+			bytelocation += strlen(knobString);
+			characterlocation += 1;
 		} else {
-			memcpy(barString + i, barFill, barFillLength);
-			i += barFillLength;
+			memcpy(barString + bytelocation, barFill, barFillLength);
+			bytelocation += barFillLength;
+			characterlocation += barFillLength;
 		}
 	}
 
-	barString[i] = '\0';
+	barString[bytelocation] = '\0';
 
 	printf("%s%s%s" "%s%s%s" "%s%s%s\n", bold, minString, normal, barLeftCap, barString, barRightCap, bold, maxString, normal);
 }
