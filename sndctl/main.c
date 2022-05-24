@@ -95,6 +95,7 @@ void listAudioOutputDevices(void) {
 	CFRelease(devices);
 }
 
+// Counts the codepoints in a UTF-8 string.
 size_t count_codepoints(const char *str) {
 	size_t count = 0;
 	size_t length = strlen(str);
