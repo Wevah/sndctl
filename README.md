@@ -16,6 +16,21 @@ Capitalize `V` or `B` to display the volume or balance.
 
 Pass `--visual` with `V` and/or `B` to display volume and balance as ASCII sliders.
 
+List output devices with `--list`/`-l` (colored if `CLICOLOR` is set):
+
+```console
+$ sndctl -l
+44: Display Audio
+    has volume:  yes
+    has balance: yes
+65: External Headphones
+    has volume:  yes
+    has balance: no
+53: MacBook Pro Speakers
+    has volume:  yes
+    has balance: no
+```
+
 (See the man page/help for more options.)
 
 I originally wrote this to easily correct the output balance after rebooting:
@@ -26,4 +41,4 @@ Note: Getting/setting the balance on some outputs on Apple Silicon macs doesn't 
 
 ----
 
-© 2017-2022 Nate Weaver (Wevah)/Derailer
+© 2017-2023 Nate Weaver (Wevah)/Derailer
