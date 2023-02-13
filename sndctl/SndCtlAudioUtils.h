@@ -29,6 +29,18 @@ extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeID;
 extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeName;
 
 /**
+ Key representing whether an audio device has a main volume property.
+ @discussion Value is a \c CFStringRef\n.
+ */
+extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeHasMainVolume;
+
+/**
+ Key representing whether an audio device has a main balance property.
+ @discussion Value is a \c CFStringRef\n.
+ */
+extern const SndCtlAudioDeviceAttribute kSndCtlAudioDeviceAttributeHasMainBalance;
+
+/**
  Copy the name of an audio device.
  @param deviceid	The ID of the audio device.
  @param	error		The error, upon failure.
@@ -70,6 +82,16 @@ CFArrayRef SndCtlCopyAudioOutputDevices(CFErrorRef *error);
  @return			Whether setting the default device was successful.
  */
 bool SndCtlSetDefaultOutputDeviceID(AudioObjectID deviceid, CFErrorRef *error);
+
+/**
+ Returns whether a device has a main volume property.
+ */
+bool SndCtlOutputDeviceHasMainVolume(AudioDeviceID deviceid);
+
+/**
+ Returns whether a device has a main balance property.
+ */
+bool SndCtlOutputDeviceHasMainBalance(AudioDeviceID deviceid);
 
 /**
  Sets the volume of a device.

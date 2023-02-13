@@ -68,6 +68,11 @@ void SndCtlPrintError(CFErrorRef error, bool release) {
 }
 
 void listAudioOutputDevices(void) {
+
+	bool color = getenv("CLICOLOR") != NULL;
+
+	const char * const yesString = color ? "\e[32myes\e[0m" : "yes";
+	const char * const noString = color ? "\e[31mno\e[0m" : "no";
 	CFErrorRef error;
 	CFArrayRef devices = SndCtlCopyAudioOutputDevices(&error);
 
@@ -80,16 +85,21 @@ void listAudioOutputDevices(void) {
 
 	for (CFIndex i = 0; i < count; ++i) {
 		CFDictionaryRef device = CFArrayGetValueAtIndex(devices, i);
-		CFNumberRef idval = CFDictionaryGetValue(device, CFSTR("id"));
+		CFNumberRef idval = CFDictionaryGetValue(device, kSndCtlAudioDeviceAttributeID);
 		AudioObjectID id;
 		CFNumberGetValue(idval, kCFNumberSInt32Type, &id);
-		CFStringRef name = CFDictionaryGetValue(device, CFSTR("name"));
+		CFStringRef name = CFDictionaryGetValue(device, kSndCtlAudioDeviceAttributeName);
 
 		char nameBuffer[256];
 
 		utf8StringCopyFromCFString(name, nameBuffer, sizeof(nameBuffer));
 
+		CFBooleanRef hasVolume = CFDictionaryGetValue(device, kSndCtlAudioDeviceAttributeHasMainVolume);
+		CFBooleanRef hasBalance = CFDictionaryGetValue(device, kSndCtlAudioDeviceAttributeHasMainBalance);
+
 		printf("%d: %s\n", id, nameBuffer);
+		printf("    has volume:  %s\n", CFBooleanGetValue(hasVolume) ? yesString : noString);
+		printf("    has balance: %s\n", CFBooleanGetValue(hasBalance) ? yesString : noString);
 	}
 
 	CFRelease(devices);
