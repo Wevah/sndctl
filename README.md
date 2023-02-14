@@ -16,7 +16,7 @@ Capitalize `V` or `B` to display the volume or balance.
 
 Pass `--visual` with `V` and/or `B` to display volume and balance as ASCII sliders.
 
-List output devices with `--list`/`-l` (colored if `CLICOLOR` is set):
+List output devices and supported properties with `--list`/`-l` (colored if `CLICOLOR` is set):
 
 ```console
 $ sndctl -l
